@@ -8,7 +8,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-
 using namespace std;
 
 // DEFINES _____________________________________________
@@ -33,6 +32,10 @@ using namespace std;
 #include <ctime>
 
 
+
+#include <netdb.h> 
+
+
 using namespace std;
 #define MAXUSER 10
 #define MAXMSG  256     // Max length of message
@@ -47,48 +50,6 @@ void error(const char *msg)
 {
     perror(msg);
     exit(1);
-}
-
-
-//https://stackoverflow.com/questions/16357999/current-date-and-time-as-string
-string getTime()
-{
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer[80];
-
-  time (&rawtime);
-  timeinfo = localtime(&rawtime);
-
-  strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
-  string str(buffer);
-
-  cout << str;
-  return str;
-
-}
-
-//Create the unique ID for the group with the fortune of the day
-string createId()
-{
-    string result;
-    array<char, 128> buffer2;
-    
-    FILE* pipe = popen("fortune -s", "r");
-    if (!pipe)
-    {
-        std::cerr << "Couldn't start command." << std::endl;
-        return 0;
-    }
-    while (fgets(buffer2.data(), 128, pipe) != NULL) 
-    {
- 
-        result += buffer2.data();
-    }
-    auto returnCode = pclose(pipe);
-    result = result + "THPHO " + getTime(); 
-    return result;
-
 }
 //https://stackoverflow.com/questions/83439/remove-spaces-from-stdstring-in-c
 //clear empty spaces from string
@@ -120,6 +81,146 @@ string delUnnecessary(string &str)
     }
     return str;
 }
+//Get the Ip address or name of the server we want to conenct ot
+string getIpAddress()
+{ 
+    cout << "\033[1;31mPlease enter the hostname / ip address: \033[0m";
+    char buffer[MAXMSG];
+        
+        bzero(
+         buffer, 
+        MAXMSG);
+        bzero(buffer,256);
+
+        fgets(buffer,255,stdin);
+        string ret(buffer);
+        string ip = delUnnecessary(ret);
+        return ip;
+
+}
+
+
+//Connect to the server and check if the client wants to exit
+void clientConnect()
+{
+    bool connect = false;
+    while(connect == false)
+    { 
+        cout << "\033[1;31mEnter CONNECT or EXIT \033[0m" << endl;
+        int n;
+        char buffer[MAXMSG];
+        
+        bzero(
+         buffer, 
+        MAXMSG);
+        bzero(buffer,256);
+
+        fgets(buffer,255,stdin);
+
+        string leave(buffer);
+        string checkConnect = "CONNECT";
+        string exitProgram = "EXIT";
+        if(delUnnecessary(leave) == exitProgram)
+        {
+            cout << "Exiting program..." << endl;
+            exit(0);
+        }
+        if(delUnnecessary(leave) == checkConnect)
+        {
+            connect = true;
+        }
+    }
+}
+
+//Print message from server
+void printMessage(int sockfd)
+{
+    int n;
+    char buffer[MAXMSG];
+    bzero(buffer,256);
+    n = read(sockfd,buffer,255);
+    if(n == 0)
+    {
+        return;
+    }
+    if (n < 0)
+    {
+        error("ERROR reading from socket");
+    }
+    printf("%s\n",buffer);
+}
+
+
+//https://stackoverflow.com/questions/16357999/current-date-and-time-as-string
+string getTime()
+{
+  time_t rawtime;
+  struct tm * timeinfo;
+  char buffer[80];
+
+  time (&rawtime);
+  timeinfo = localtime(&rawtime);
+
+  strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+  string str(buffer);
+
+  cout << str;
+  return str;
+
+}
+//Send message to other clients or use one of the API commands
+bool sendMessage(int sockfd)
+{
+    int n;
+    char buffer[MAXMSG];
+    
+    bzero(
+        buffer, 
+        MAXMSG);
+    bzero(buffer,256);
+
+    fgets(buffer,255,stdin);
+
+    string leave(buffer);
+    string checkLeave = "LEAVE";
+    if(delUnnecessary(leave) == checkLeave)
+    { 
+        return true;
+    }
+    else
+    {
+        n = write(sockfd,buffer,strlen(buffer));
+        if (n < 0)
+        {
+            error("ERROR writing to socket");
+        }
+        return false;
+    }
+
+}
+
+//Create the unique ID for the group with the fortune of the day
+string createId()
+{
+    string result;
+    array<char, 128> buffer2;
+     
+    FILE* pipe = popen("fortune -s", "r");
+    if (!pipe)
+    {
+        std::cerr << "Couldn't start command." << std::endl;
+        return 0;
+    }
+    while (fgets(buffer2.data(), 128, pipe) != NULL) 
+    {
+ 
+        result += buffer2.data();
+    }
+    auto returnCode = pclose(pipe);
+    result = result + "THPHO " + getTime(); 
+    return result;
+
+}
 
 
 //Disconnect from the chat server
@@ -131,10 +232,85 @@ int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen)
     return 0;
 }
 
+void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks, int n)
+{
+        char buffer[MAXMSG];
+        clientConnect();
+        const char *ip = getIpAddress().c_str();
+
+        sockfd = socket(
+            AF_INET, 
+            SOCK_STREAM, 
+            0);
+
+        if (sockfd < 0) {
+            error("ERROR opening socket");
+        }
+
+        server = gethostbyname(ip);
+
+        if (server == NULL) {
+            fprintf(stderr,"ERROR, no such host\n");
+            exit(0);
+        }
+
+        bzero(
+            (char *) &serv_addr2, 
+            sizeof(serv_addr2));
+
+        serv_addr2.sin_family = AF_INET;
+
+        bcopy((char *)server->h_addr, 
+             (char *)&serv_addr2.sin_addr.s_addr,
+             server->h_length);
+
+        serv_addr2.sin_port = htons(TRES);
+        cout << "\033[1;31mPlease enter username: \033[0m";
+
+       
+        
+        bzero(
+         buffer, 
+        MAXMSG);
+        bzero(buffer,256);
+
+        fgets(buffer,255,stdin);
+        
+        if (n < 0)
+        {
+            error("ERROR writing to socket");
+        }
+
+
+        if  (connect(
+                sockfd,
+                (struct sockaddr *) &serv_addr2,
+                sizeof(serv_addr2)) < 0) {
+
+            error("ERROR connecting");
+        }
+
+        n = write(sockfd, buffer, strlen(buffer));
+        
+        FD_ZERO(&activeSocks);
+        FD_SET(STDIN_FILENO, &activeSocks);
+        FD_SET(sockfd, &activeSocks);
+        cout << "\033[1;31mWelcome to our chat server! You can use these commands: \033[0m" << endl;
+        cout << "\033[1;33mto get the id of the server: <ID> \033[0m" << endl;
+        cout << "\033[1;33mto leave the server: <LEAVE> \033[0m" << endl;
+        cout << "\033[1;33mto get the list of users: <WHO> \033[0m"  << endl;
+        cout << "\033[1;33mto send a message to a specific user: <MSG> <USERNAME> <Your message> \033[0m" << endl;
+        cout << "\033[1;33mto send a message to all the users: <MSG> <ALL> <Your message> \033[0m" << endl;
+        cout << "\033[1;33mto change the ID of the server: <MSG> <ALL> <Your message> \033[0m" << endl;
+
+}
+
 
 //This is our bulcky message function, it handles the API from the client
-string echoMessage(char buffer[], int clientsSockets[], int sender, int val, string username, string userNames[], string serverId)
+string echoMessage(char buffer[], int clientsSockets[], int sender, int val, string username, string userNames[], string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
 {
+    //char buffer[MAXMSG];
+
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -143,10 +319,11 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     string checkMsgAll = "MSG ALL";
     string ALL = "ALL";
     string emptyChecker = "0";
+    string connectServer = "SERVER";
     buffer[val] = '\0';
-
     string str(buffer);
-
+    
+    cout << "UsernameCheck: " << endl;
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);
@@ -164,8 +341,13 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
     string messageALL =  delUnnecessary(leave).substr(0, 6);
     bool usernameBool = false;
-    
 
+    cout << "UsernameCheck: " << usernameCheck << endl;
+    if(connectServer == usernameCheck)
+    {
+        connectToServer(sockfd, server, serv_addr2, activeSocks, n);
+    }
+    
     if(usernameCheck == MSG)
     {
         leave = leave.substr(3,leave.length());
@@ -236,6 +418,7 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
             {
                 if(clientsSockets[i] != sender)
                 {
+
                     //Send the username of the sender;
                     send(clientsSockets[i], userArr, strlen(userArr), 0);
                     //Sending the message
@@ -287,61 +470,17 @@ void setTheSet(int clientsSockets[], fd_set &readfds, int maxSd)
         }
 }
 
-
-//Send message to other clients or use one of the API commands
-bool sendMessage(int sockfd)
-{
-    int n;
-    char buffer[MAXMSG];
-    
-    bzero(
-        buffer, 
-        MAXMSG);
-    bzero(buffer,256);
-
-    fgets(buffer,255,stdin);
-
-    string leave(buffer);
-    string checkLeave = "LEAVE";
-    if(delUnnecessary(leave) == checkLeave)
-    { 
-        return true;
-    }
-    else
-    {
-        n = write(sockfd,buffer,strlen(buffer));
-        if (n < 0)
-        {
-            error("ERROR writing to socket");
-        }
-        return false;
-    }
-
-}
-//Print message from server
-void printMessage(int sockfd)
-{
-    int n;
-    char buffer[MAXMSG];
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    if(n == 0)
-    {
-        return;
-    }
-    if (n < 0)
-    {
-        error("ERROR reading from socket");
-    }
-    printf("%s\n",buffer);
-}
-
 int main(int argc, char *argv[])
 {
+    int sockfd, n;
+    int portno = TRES;
+    struct sockaddr_in serv_addr2;           // Socket address structure
+    struct hostent *server;
+    fd_set activeSocks, readySocks;
 
     int client1, max_sd;
     int client2;
-    int sockfd;
+    //int sockfd;
     int clientsSockets[MAXUSER];
     char buffer[MAXMSG];
     int opt = 1;
@@ -352,11 +491,10 @@ int main(int argc, char *argv[])
 
     string serverId = createId();
    
+   
     for (int i = 0; i < MAXUSER; i++){
-
         clientsSockets[i] = 0;
         userNames[i] = "0";
-
     }
 
     cout << "creating socket" << endl;
@@ -371,7 +509,7 @@ int main(int argc, char *argv[])
     }
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(DOS);
+    serv_addr.sin_port = htons(TRES);
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))<0) 
     {
@@ -402,6 +540,7 @@ int main(int argc, char *argv[])
             read(clientsSockets[emptySocket], buffer, 1024);
             string username(buffer);
             userNames[emptySocket] = delUnnecessary(username);
+          //  printMessage(sockfd);
 
         }
             
@@ -409,16 +548,17 @@ int main(int argc, char *argv[])
         {
             int sender = clientsSockets[i];
             
-            if (FD_ISSET( sender , &readfds)) 
+            if (FD_ISSET(sender , &readfds)) 
             {
                 if ((val = read( sender , buffer, 1024)) == 0)
                 {
+                    cout << "DISCONNECT HAPPENING" << endl;
                     clientsSockets[i] = disconnect(sender, serv_addr, addrlen);
                 }
                 else
                 {
                     cout << "ECHO MESSAGE HAPPENING" << endl;
-                    serverId = echoMessage(buffer, clientsSockets, sender, val, userNames[i], userNames, serverId);
+                    serverId = echoMessage(buffer, clientsSockets, sender, val, userNames[i], userNames, serverId, sockfd, server, serv_addr2, activeSocks);
                 }
             }
         }
