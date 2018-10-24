@@ -323,7 +323,7 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     buffer[val] = '\0';
     string str(buffer);
     
-    cout << "UsernameCheck: " << endl;
+    cout << "UsernameCheck1: " << endl;
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);
@@ -342,11 +342,15 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     string messageALL =  delUnnecessary(leave).substr(0, 6);
     bool usernameBool = false;
 
-    cout << "UsernameCheck: " << usernameCheck << endl;
+    string portNumberString = leave.substr(6,leave.length());
+    string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
+    cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
+    int portNumberInt = stoi(portNumberString);
+    cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
     if(connectServer == usernameCheck)
     {
        // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
-        connectToServer(sockfd, server, serv_addr2, activeSocks, n, TRES);
+        connectToServer(sockfd, server, serv_addr2, activeSocks, n, portNumberInt);
     }
     
     if(usernameCheck == MSG)
