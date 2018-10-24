@@ -151,7 +151,7 @@ string getIpAddress()
 int main(int argc, char *argv[]) {
 
     int sockfd, n;
-    int portno = UNO;
+    int portno = TRES;
     struct sockaddr_in serv_addr;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;

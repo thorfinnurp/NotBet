@@ -45,6 +45,21 @@ using namespace std;
 
 //We read this article before starting on our server: https://www.binarytides.com/multiple-socket-connections-fdset-select-linux/
 
+class Server
+{
+public:
+    int sock;
+    string name;
+   // Client(int sock, string name){} 
+
+    //~Client(){}       
+};
+
+Server servers[5];
+
+
+
+
 
 void error(const char *msg) 
 {
@@ -148,6 +163,14 @@ void printMessage(int sockfd)
         error("ERROR reading from socket");
     }
     printf("%s\n",buffer);
+}
+
+//https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
+bool is_number(const std::string& s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }
 
 
@@ -344,15 +367,16 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
 
     string portNumberString = leave.substr(6,leave.length());
     string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
-    cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
-    int portNumberInt = stoi(portNumberString);
-    cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
-    if(connectServer == usernameCheck)
-    {
-       // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
-        connectToServer(sockfd, server, serv_addr2, activeSocks, n, portNumberInt);
+    //cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
+    if(is_number(portNumberString)){ 
+        int portNumberInt = stoi(portNumberString);
+        cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
+        if(connectServer == usernameCheck)
+        {
+           // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
+            connectToServer(sockfd, server, serv_addr2, activeSocks, n, portNumberInt);
+        }
     }
-    
     if(usernameCheck == MSG)
     {
         leave = leave.substr(3,leave.length());
@@ -445,6 +469,17 @@ int getEmptySocket(int clientsSockets[])
         }
     }
 }
+int getEmptySocketServer()
+{
+    for (int i = 0; i < 5; i++) 
+    {
+        if(servers[i].sock == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
 //Create a new socket
 int getNewSocket(int sockfd, struct sockaddr_in serv_addr,int addrlen)
 {
@@ -476,6 +511,8 @@ void setTheSet(int clientsSockets[], fd_set &readfds, int maxSd)
 
 int main(int argc, char *argv[])
 {
+
+   // Server servers[5];
     int sockfd, n;
     int portno = UNO;
     struct sockaddr_in serv_addr2;           // Socket address structure
@@ -493,8 +530,17 @@ int main(int argc, char *argv[])
     string userNames[MAXUSER];
     struct sockaddr_in serv_addr;
 
+
+    Server emptyServer;
+    emptyServer.sock = 0;
+    emptyServer.name = "empty";
+
     string serverId = createId();
-   
+    for (int i = 0; i < 5; i++){
+        servers[i] = emptyServer;
+        
+    }
+
    
     for (int i = 0; i < MAXUSER; i++){
         clientsSockets[i] = 0;
@@ -541,7 +587,19 @@ int main(int argc, char *argv[])
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket(clientsSockets);
             clientsSockets[emptySocket] = newSocket;
-            read(clientsSockets[emptySocket], buffer, 1024);
+            Server newServer;
+            newServer.sock = newSocket;
+            newServer.name = "Name of Server";
+            int emptySocketServer = getEmptySocketServer();
+            if(emptySocketServer != -1)
+            {
+                servers[emptySocketServer] = newServer;
+            }
+            else
+            {
+                cout << endl << "Server is full, please try again later..." << endl;
+            }
+            read(clientsSockets[emptySocketServer], buffer, 1024);
             string username(buffer);
             userNames[emptySocket] = delUnnecessary(username);
           //  printMessage(sockfd);

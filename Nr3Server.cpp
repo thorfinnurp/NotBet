@@ -232,7 +232,7 @@ int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen)
     return 0;
 }
 
-void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks, int n)
+void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks, int n, int portNumber)
 {
         char buffer[MAXMSG];
         clientConnect();
@@ -264,7 +264,7 @@ void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv
              (char *)&serv_addr2.sin_addr.s_addr,
              server->h_length);
 
-        serv_addr2.sin_port = htons(TRES);
+        serv_addr2.sin_port = htons(portNumber);
         cout << "\033[1;31mPlease enter username: \033[0m";
 
        
@@ -323,7 +323,7 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     buffer[val] = '\0';
     string str(buffer);
     
-    cout << "UsernameCheck: " << endl;
+    cout << "UsernameCheck1: " << endl;
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);
@@ -342,10 +342,15 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     string messageALL =  delUnnecessary(leave).substr(0, 6);
     bool usernameBool = false;
 
-    cout << "UsernameCheck: " << usernameCheck << endl;
+    string portNumberString = leave.substr(6,leave.length());
+    string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
+    cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
+    int portNumberInt = stoi(portNumberString);
+    cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
     if(connectServer == usernameCheck)
     {
-        connectToServer(sockfd, server, serv_addr2, activeSocks, n);
+       // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
+        connectToServer(sockfd, server, serv_addr2, activeSocks, n, portNumberInt);
     }
     
     if(usernameCheck == MSG)
@@ -418,7 +423,6 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
             {
                 if(clientsSockets[i] != sender)
                 {
-
                     //Send the username of the sender;
                     send(clientsSockets[i], userArr, strlen(userArr), 0);
                     //Sending the message
@@ -533,7 +537,7 @@ int main(int argc, char *argv[])
 
         if (FD_ISSET(sockfd, &readfds)) 
         {
-            cout << "CONNECT HAPPENING" << endl;
+            cout << "ECHO MESSAGE HAPPENING" << endl;
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket(clientsSockets);
             clientsSockets[emptySocket] = newSocket;
@@ -557,7 +561,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    cout << "ECHO MESSAGE HAPPENING" << endl;
+                    cout << "SEND MESSAGE HAPPENING" << endl;
                     serverId = echoMessage(buffer, clientsSockets, sender, val, userNames[i], userNames, serverId, sockfd, server, serv_addr2, activeSocks);
                 }
             }
