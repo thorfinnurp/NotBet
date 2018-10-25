@@ -327,7 +327,7 @@ void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv
 
 
 //This is our bulcky message function, it handles the API from the client
-string echoMessage(char buffer[], int sender, int val, string username, string userNames[], string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
+string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
 {
     //char buffer[MAXMSG];
 
@@ -390,7 +390,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string u
         for(int  i = 0; i < MAXUSER; i++)
         {
             //send message to one user MSG <USERNAME> "message we want to send"
-            if(user == userNames[i])
+            if(user == clientsSockets[i].name)
             {
                 user = user + ":";
                 int n = user.length();
@@ -411,9 +411,9 @@ string echoMessage(char buffer[], int sender, int val, string username, string u
         {
             for(int  i = 0; i < MAXUSER; i++)
             {
-                if(userNames[i] != emptyChecker)
+                if(clientsSockets[i].name != emptyChecker)
                 { 
-                    string currUser = userNames[i];
+                    string currUser = clientsSockets[i].name;
                     currUser = currUser + ": ";
                     int n = currUser.length();
                     char userArr[n+1];
@@ -524,7 +524,7 @@ int main(int argc, char *argv[])
     int opt = 1;
     int val = 0;
     fd_set readfds;
-    string userNames[MAXUSER];
+    //string userNames[MAXUSER];
     struct sockaddr_in serv_addr;
 
 
@@ -539,10 +539,10 @@ int main(int argc, char *argv[])
    // }
 
    
-    for (int i = 0; i < MAXUSER; i++){
+    for (int i = 0; i < 5; i++){
         clientsSockets[i] =  emptyServer;
       //  ;
-        userNames[i] = "0";
+       // userNames[i] = "0";
     }
 
     cout << "creating socket" << endl;
@@ -599,7 +599,7 @@ int main(int argc, char *argv[])
          //   }
             read(clientsSockets[emptySocket].sock, buffer, 1024);
             string username(buffer);
-            userNames[emptySocket] = delUnnecessary(username);
+            clientsSockets[emptySocket].name = delUnnecessary(username);
           //  printMessage(sockfd);
 
         }
@@ -618,7 +618,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     cout << "SEND MESSAGE HAPPENING" << endl;
-                    serverId = echoMessage(buffer, sender, val, userNames[i], userNames, serverId, sockfd, server, serv_addr2, activeSocks);
+                    serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr2, activeSocks);
                 }
  }
         }
