@@ -537,7 +537,7 @@ int main(int argc, char *argv[])
 
    // Server servers[5];
     int sockfd, n;
-    int portno = UNO;
+    int portno = DOS;
     //struct sockaddr_in serv_addr2;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;
@@ -583,7 +583,7 @@ int main(int argc, char *argv[])
     }
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(UNO);
+    serv_addr.sin_port = htons(DOS);
 
     if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))<0) 
     {
