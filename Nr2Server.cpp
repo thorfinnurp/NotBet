@@ -9,10 +9,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 using namespace std;
-
 // DEFINES _____________________________________________
-
-
 // http://www.gnu.org/software/libc/manual/html_node/Server-Example.html
 //  Sja myndina i tessari grein
 // https://simpledevcode.wordpress.com/2016/06/16/client-server-chat-in-c-using-sockets/
@@ -30,7 +27,6 @@ using namespace std;
 #include <string>
 #include <array>
 #include <ctime>
-
 
 
 
@@ -56,34 +52,9 @@ public:
     //~Client(){}       
 };
 
-Server servers[5];
-int currentMinute;
-void keepAlive(){
-    cout << endl  << "HELLO" << endl;
-    const time_t now = std::time(nullptr) ; // get the current time point
+Server clientsSockets[5];
 
-    // convert it to (local) calendar time
-    // http://en.cppreference.com/w/cpp/chrono/c/localtime
-    const tm calendar_time = *std::localtime( std::addressof(now) ) ;
 
-    // print out some relevant fields http://en.cppreference.com/w/cpp/chrono/c/tm
-    cout << "              year: " << calendar_time.tm_year + 1900 << '\n'
-              << "    month (jan==1): " << calendar_time.tm_mon + 1 << '\n'
-              << "      day of month: " << calendar_time.tm_mday << '\n'
-              << "hour (24-hr clock): " << calendar_time.tm_hour << '\n'
-              << "            minute: " << calendar_time.tm_min << '\n'
-              << "            second: " << calendar_time.tm_sec << '\n' ;
-
-    // http://en.cppreference.com/w/cpp/chrono/c/asctime
-    cout << '\n' << std::asctime( std::addressof(calendar_time) );
-    cout << endl << "Currmin " << currentMinute << endl;
-    if(currentMinute != calendar_time.tm_min){
-        currentMinute = calendar_time.tm_min;
-        cout << endl << "Currmin " << currentMinute << endl;
-        //Send keep alive message!!!
-    }
-    cout << endl << "Currmin " << currentMinute << endl;
-}
 
 
 
@@ -356,7 +327,7 @@ void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv
 
 
 //This is our bulcky message function, it handles the API from the client
-string echoMessage(char buffer[], int clientsSockets[], int sender, int val, string username, string userNames[], string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
+string echoMessage(char buffer[], int sender, int val, string username, string userNames[], string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
 {
     //char buffer[MAXMSG];
 
@@ -426,9 +397,9 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
                 char retUser[n+1];
                 strcpy(retUser, user.c_str());
                 //Send the username
-                send(clientsSockets[i], userArr, strlen(userArr), 0);
+                send(clientsSockets[i].sock, userArr, strlen(userArr), 0);
                 //Send the message
-                send(clientsSockets[i], retMessage, strlen(retMessage), 0);
+                send(clientsSockets[i].sock, retMessage, strlen(retMessage), 0);
             }
         }
         usernameBool = true;
@@ -471,12 +442,12 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
             messageAllUsers:
             for (int i = 0; i < MAXUSER; i++) 
             {
-                if(clientsSockets[i] != sender)
+                if(clientsSockets[i].sock != sender)
                 {
                     //Send the username of the sender;
-                    send(clientsSockets[i], userArr, strlen(userArr), 0);
+                    send(clientsSockets[i].sock, userArr, strlen(userArr), 0);
                     //Sending the message
-                    send(clientsSockets[i], buff, strlen(buff), 0);            
+                    send(clientsSockets[i].sock, buff, strlen(buff), 0);            
                 }
             }
         }
@@ -485,27 +456,27 @@ string echoMessage(char buffer[], int clientsSockets[], int sender, int val, str
     return serverId;
 }
 //Get the first empty socket
-int getEmptySocket(int clientsSockets[])
+int getEmptySocket()
 {
     for (int i = 0; i < MAXUSER; i++) 
     {
-        if(clientsSockets[i] == 0)
+        if(clientsSockets[i].sock == 0)
         {
             return i;
         }
     }
 }
-int getEmptySocketServer()
-{
-    for (int i = 0; i < 5; i++) 
-    {
-        if(servers[i].sock == 0)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
+//int getEmptySocketServer()
+//{
+ //   for (int i = 0; i < 5; i++) 
+ //   {
+  //      if(servers[i].sock == 0)
+  //      {
+  //          return i;
+   //     }
+   // }
+   // return -1;
+//}
 //Create a new socket
 int getNewSocket(int sockfd, struct sockaddr_in serv_addr,int addrlen)
 {
@@ -517,13 +488,13 @@ int getNewSocket(int sockfd, struct sockaddr_in serv_addr,int addrlen)
     return newSocket;
 }
 //Creating the FDSET
-void setTheSet(int clientsSockets[], fd_set &readfds, int maxSd)
+void setTheSet( fd_set &readfds, int maxSd)
 {
     int sd = 0;
     
     for (int i = 0 ; i < MAXUSER ; i++) 
         {
-            sd = clientsSockets[i];
+            sd = clientsSockets[i].sock;
             if(sd > 0)
             {
                 FD_SET( sd , &readfds);
@@ -537,8 +508,6 @@ void setTheSet(int clientsSockets[], fd_set &readfds, int maxSd)
 
 int main(int argc, char *argv[])
 {
-    currentMinute = 0;
-    keepAlive();
 
    // Server servers[5];
     int sockfd, n;
@@ -550,7 +519,7 @@ int main(int argc, char *argv[])
     int client1, max_sd;
     int client2;
     //int sockfd;
-    int clientsSockets[MAXUSER];
+    //int clientsSockets[MAXUSER];
     char buffer[MAXMSG];
     int opt = 1;
     int val = 0;
@@ -564,14 +533,15 @@ int main(int argc, char *argv[])
     emptyServer.name = "empty";
 
     string serverId = createId();
-    for (int i = 0; i < 5; i++){
-        servers[i] = emptyServer;
+   // for (int i = 0; i < 5; i++){
+    //    servers[i] = emptyServer;
         
-    }
+   // }
 
    
     for (int i = 0; i < MAXUSER; i++){
-        clientsSockets[i] = 0;
+        clientsSockets[i] =  emptyServer;
+      //  ;
         userNames[i] = "0";
     }
 
@@ -603,33 +573,31 @@ int main(int argc, char *argv[])
 
     while(1)
     {
-        void keepAlive();
 
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
-        setTheSet(clientsSockets, readfds, sockfd);
+        setTheSet( readfds, sockfd);
         select(FD_SETSIZE ,&readfds ,NULL ,NULL ,NULL);
 
         if (FD_ISSET(sockfd, &readfds)) 
         {
             cout << "ECHO MESSAGE HAPPENING" << endl;
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
-            int emptySocket = getEmptySocket(clientsSockets);
-            clientsSockets[emptySocket] = newSocket;
-            int newSocketServer = getNewSocket(sockfd, serv_addr, addrlen);
-            Server newServer;
-            newServer.sock = newSocket;
-            newServer.name = "Name of Server";
-            int emptySocketServer = getEmptySocketServer();
-            if(emptySocketServer != -1)
-            {
-                servers[emptySocketServer] = newServer;
-            }
-            else
-            {
-                cout << endl << "Server is full, please try again later..." << endl;
-            }
-            read(clientsSockets[emptySocketServer], buffer, 1024);
+            int emptySocket = getEmptySocket();
+            clientsSockets[emptySocket].sock = newSocket;
+            //Server newServer;
+            //newServer.sock = newSocket;
+           // newServer.name = "Name of Server";
+           // int emptySocketServer = getEmptySocketServer();
+          //  if(emptySocketServer != -1)
+          //  {
+         //       servers[emptySocketServer] = newServer;
+          //  }
+          //  else
+         //  {
+          //      cout << endl << "Server is full, please try again later..." << endl;
+         //   }
+            read(clientsSockets[emptySocket].sock, buffer, 1024);
             string username(buffer);
             userNames[emptySocket] = delUnnecessary(username);
           //  printMessage(sockfd);
@@ -638,21 +606,21 @@ int main(int argc, char *argv[])
             
         for (int i = 0; i < MAXUSER; i++) 
         {
-            int sender = clientsSockets[i];
+            int sender = clientsSockets[i].sock;
             
             if (FD_ISSET(sender , &readfds)) 
             {
                 if ((val = read( sender , buffer, 1024)) == 0)
                 {
                     cout << "DISCONNECT HAPPENING" << endl;
-                    clientsSockets[i] = disconnect(sender, serv_addr, addrlen);
+                    clientsSockets[i].sock = disconnect(sender, serv_addr, addrlen);
                 }
                 else
                 {
                     cout << "SEND MESSAGE HAPPENING" << endl;
-                    serverId = echoMessage(buffer, clientsSockets, sender, val, userNames[i], userNames, serverId, sockfd, server, serv_addr2, activeSocks);
+                    serverId = echoMessage(buffer, sender, val, userNames[i], userNames, serverId, sockfd, server, serv_addr2, activeSocks);
                 }
-            }
+ }
         }
 
     }

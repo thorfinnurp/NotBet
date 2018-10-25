@@ -159,9 +159,10 @@ int main(int argc, char *argv[]) {
     while(1)
     { 
 
-        clientConnect();
-        const char *ip = getIpAddress().c_str();
-
+        //clientConnect();
+        //const char *ip = getIpAddress().c_str();
+        string ipAddress = "127.0.0.1";
+        const char *ip = ipAddress.c_str();
         sockfd = socket(
             AF_INET, 
             SOCK_STREAM, 
