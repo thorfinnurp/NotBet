@@ -310,7 +310,7 @@ void connectToServer(int sockfd, struct hostent *server, struct sockaddr_in serv
 string echoMessage(char buffer[], int clientsSockets[], int sender, int val, string username, string userNames[], string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr2, fd_set activeSocks)
 {
     //char buffer[MAXMSG];
-
+    cout << endl << "Meaasge: " << buffer << endl; 
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -529,6 +529,7 @@ int main(int argc, char *argv[])
 
     while(1)
     {
+        cout << "ClientSock"  << clientsSockets[0] << " - " << clientsSockets[1];
 
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
@@ -537,7 +538,7 @@ int main(int argc, char *argv[])
 
         if (FD_ISSET(sockfd, &readfds)) 
         {
-            cout << "ECHO MESSAGE HAPPENING" << endl;
+            cout << "New Connection HAPPENING" << endl;
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket(clientsSockets);
             clientsSockets[emptySocket] = newSocket;
