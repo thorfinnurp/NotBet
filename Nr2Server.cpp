@@ -33,6 +33,7 @@ using namespace std;
 
 
 
+
 #include <netdb.h> 
 
 
@@ -56,8 +57,33 @@ public:
 };
 
 Server servers[5];
+int currentMinute;
+void keepAlive(){
+    cout << endl  << "HELLO" << endl;
+    const time_t now = std::time(nullptr) ; // get the current time point
 
+    // convert it to (local) calendar time
+    // http://en.cppreference.com/w/cpp/chrono/c/localtime
+    const tm calendar_time = *std::localtime( std::addressof(now) ) ;
 
+    // print out some relevant fields http://en.cppreference.com/w/cpp/chrono/c/tm
+    cout << "              year: " << calendar_time.tm_year + 1900 << '\n'
+              << "    month (jan==1): " << calendar_time.tm_mon + 1 << '\n'
+              << "      day of month: " << calendar_time.tm_mday << '\n'
+              << "hour (24-hr clock): " << calendar_time.tm_hour << '\n'
+              << "            minute: " << calendar_time.tm_min << '\n'
+              << "            second: " << calendar_time.tm_sec << '\n' ;
+
+    // http://en.cppreference.com/w/cpp/chrono/c/asctime
+    cout << '\n' << std::asctime( std::addressof(calendar_time) );
+    cout << endl << "Currmin " << currentMinute << endl;
+    if(currentMinute != calendar_time.tm_min){
+        currentMinute = calendar_time.tm_min;
+        cout << endl << "Currmin " << currentMinute << endl;
+        //Send keep alive message!!!
+    }
+    cout << endl << "Currmin " << currentMinute << endl;
+}
 
 
 
@@ -511,6 +537,8 @@ void setTheSet(int clientsSockets[], fd_set &readfds, int maxSd)
 
 int main(int argc, char *argv[])
 {
+    currentMinute = 0;
+    keepAlive();
 
    // Server servers[5];
     int sockfd, n;
@@ -575,6 +603,7 @@ int main(int argc, char *argv[])
 
     while(1)
     {
+        void keepAlive();
 
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
@@ -587,6 +616,7 @@ int main(int argc, char *argv[])
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket(clientsSockets);
             clientsSockets[emptySocket] = newSocket;
+            int newSocketServer = getNewSocket(sockfd, serv_addr, addrlen);
             Server newServer;
             newServer.sock = newSocket;
             newServer.name = "Name of Server";
