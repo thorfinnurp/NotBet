@@ -385,7 +385,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     buffer[val] = '\0';
     string str(buffer);
     
-    cout << "UsernameCheck1: " << endl;
+    cout <<endl << "BUFFER: " << buffer << endl;
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);

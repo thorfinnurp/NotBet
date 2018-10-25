@@ -372,7 +372,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
 {
     //char buffer[MAXMSG];
-
+     cout <<endl << "BUFFER: " << buffer << endl;
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
