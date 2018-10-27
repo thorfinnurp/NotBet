@@ -341,18 +341,14 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
             error("ERROR connecting");
         }
 
-       // n = write(sockfd,buffer,strlen(buffer));
-       
-       // FD_ZERO(&activeSocks);
-       // FD_SET(STDIN_FILENO, &activeSocks);
-       // FD_SET(sockfd, &activeSocks);
+    
         int addrlen = sizeof(serv_addr);
 
         //int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
             
-        //read(clientsSockets[emptySocket].sock, buffer, 1024);
+        read(clientsSockets[emptySocket].sock, buffer, 1024);
         string username(buffer);
         clientsSockets[emptySocket].name = delUnnecessary(username);
 
@@ -382,6 +378,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string ALL = "ALL";
     string emptyChecker = "0";
     string connectServer = "SERVER";
+    string listServers = "LISTSERVERS";
     buffer[val] = '\0';
     string str(buffer);
     
@@ -417,6 +414,14 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
            // send(sockfd, buff, strlen(buff), 0);
         }
     }
+    if(listServers == usernameCheck)
+    {
+        for(int i = 0; i < 5; i++)
+        { 
+            cout << clientsSockets[i].name;
+        }
+    }
+
     if(usernameCheck == MSG)
     {
         leave = leave.substr(3,leave.length());
@@ -501,17 +506,6 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     return serverId;
 }
 
-//int getEmptySocketServer()
-//{
- //   for (int i = 0; i < 5; i++) 
- //   {
-  //      if(servers[i].sock == 0)
-  //      {
-  //          return i;
-   //     }
-   // }
-   // return -1;
-//}
 
 //Creating the FDSET
 void setTheSet( fd_set &readfds, int maxSd)
@@ -559,16 +553,11 @@ int main(int argc, char *argv[])
     emptyServer.name = "empty";
 
     string serverId = createId();
-   // for (int i = 0; i < 5; i++){
-    //    servers[i] = emptyServer;
-        
-   // }
 
    
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 5; i++)
+    {
         clientsSockets[i] =  emptyServer;
-      //  ;
-       // userNames[i] = "0";
     }
 
     cout << "creating socket" << endl;
@@ -596,9 +585,14 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
+    string  groupId = "GroupId;127.0.0.1";
+    char bufferGroupId[MAXMSG] = "";
+    strcpy(bufferGroupId, groupId.c_str());
+
 
     while(1)
     {
+        
 
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
@@ -611,22 +605,12 @@ int main(int argc, char *argv[])
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket();
             clientsSockets[emptySocket].sock = newSocket;
-            //Server newServer;
-            //newServer.sock = newSocket;
-           // newServer.name = "Name of Server";
-           // int emptySocketServer = getEmptySocketServer();
-          //  if(emptySocketServer != -1)
-          //  {
-         //       servers[emptySocketServer] = newServer;
-          //  }
-          //  else
-         //  {
-          //      cout << endl << "Server is full, please try again later..." << endl;
-         //   }
+
+            write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(buffer));
             read(clientsSockets[emptySocket].sock, buffer, 1024);
             string username(buffer);
             clientsSockets[emptySocket].name = delUnnecessary(username);
-          //  printMessage(sockfd);
+
 
         }
             
@@ -643,10 +627,11 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
+
                     cout << "SEND MESSAGE HAPPENING" << endl;
                     serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr, activeSocks, addrlen);
                 }
- }
+            }
         }
 
     }
