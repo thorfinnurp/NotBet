@@ -289,7 +289,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
         //clientConnect();
         //const char *ip = getIpAddress().c_str();
-        string ipAddress = "skel.ru.is";
+        string ipAddress = "127.0.0.1";
         const char *ip = ipAddress.c_str();
         sockfd = socket(
             AF_INET, 
@@ -472,27 +472,28 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
     if(RSP == usernameCheck)
     {
-        string serverList = "";
+        string serverList = "RSP";
         leave = leave.substr(3,leave.length());
 
         //string serverList = "CMD STUFF";
         char bufferRSP[MAXMSG];
         string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
         cout << "CMD USERTO " << user << endl; 
-        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" "));
+        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" ")-2);
         cout << "CMD FROM " << from << endl; 
-        string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
+        string message =  delUnnecessary(leave).substr(user.length() + from.length() + 2, delUnnecessary(leave).length());
         cout << "MEssage: " << message << endl;
         for(int i = 0; i < 5; i++)
         { 
-            cout << endl << clientsSockets[i].name << "=" << user;
+            cout << endl << clientsSockets[i].name << "=" << from;
 
            
-            if(clientsSockets[i].name == user)
+            if(clientsSockets[i].name == from)
             {
+                cout << endl << "Message:" << message <<"ListServers:" << listServers << endl;
                 if(message == listServers)
                 {
-                    string serverList;
+                    cout << "Listservers RSP";
                     char bufferServerList[MAXMSG] = "";
         
                     for(int i = 0; i < 5; i++)
