@@ -283,7 +283,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "GroupId;127.0.0.1";
+    string  groupId = "server3";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -398,12 +398,17 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     char userArr[n+1];
     strcpy(userArr, username.c_str());
     string leave(buffer);
-  
+    string messageALL = "";
+    string portNumberString = "";
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
-    string messageALL =  delUnnecessary(leave).substr(0, 6);
+    if(delUnnecessary(leave).length() > 6)
+    { 
+         messageALL =  delUnnecessary(leave).substr(0, 6);
+         portNumberString = leave.substr(6,leave.length());
+    }
     bool usernameBool = false;
 
-    string portNumberString = leave.substr(6,leave.length());
+    
     string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
     //cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
     if(is_number(portNumberString)){ 
@@ -418,18 +423,19 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     }
     if(listServers == usernameCheck)
     {
-        string serverList;
+       string serverList;
         char bufferServerList[MAXMSG] = "";
         
         for(int i = 0; i < 5; i++)
         { 
+            serverList = serverList + " , " + clientsSockets[i].name;
             cout << endl << clientsSockets[i].name << endl;
 
         }
-        strcpy(bufferServerList, groupId.c_str());
-        send(client[sender].sock, userArr, strlen(userArr), 0);
+        strcpy(bufferServerList, serverList.c_str());
+        send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
+        write(sender, bufferServerList,strlen(bufferServerList));
     }
-
     if(usernameCheck == MSG)
     {
         leave = leave.substr(3,leave.length());
@@ -548,7 +554,7 @@ int main(int argc, char *argv[])
     int client2;
     //int sockfd;
     //int clientsSockets[MAXUSER];
-    char buffer[MAXMSG];
+    
     int opt = 1;
     int val = 0;
     fd_set readfds;
@@ -593,14 +599,14 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string  groupId = "GroupId;127.0.0.1";
+    string  groupId = "server3";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
 
     while(1)
     {
-        
+        char buffer[MAXMSG];
 
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
