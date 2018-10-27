@@ -283,7 +283,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "server3";
+    string  groupId = "Server3";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -381,6 +381,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string emptyChecker = "0";
     string connectServer = "SERVER";
     string listServers = "LISTSERVERS";
+    string cmd ="CMD";
     buffer[val] = '\0';
     string str(buffer);
     
@@ -398,17 +399,17 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     char userArr[n+1];
     strcpy(userArr, username.c_str());
     string leave(buffer);
-    string messageALL = "";
     string portNumberString = "";
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+    string messageALL =  "";
     if(delUnnecessary(leave).length() > 6)
     { 
-         messageALL =  delUnnecessary(leave).substr(0, 6);
-         portNumberString = leave.substr(6,leave.length());
+        messageALL =  delUnnecessary(leave).substr(0, 6);
+        portNumberString = leave.substr(6,leave.length());
     }
+    
     bool usernameBool = false;
 
-    
     string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
     //cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
     if(is_number(portNumberString)){ 
@@ -421,8 +422,9 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
            // send(sockfd, buff, strlen(buff), 0);
         }
     }
-    if(listServers == usernameCheck)
+    if(listServers == delUnnecessary(leave))
     {
+
        string serverList;
         char bufferServerList[MAXMSG] = "";
         
@@ -436,6 +438,37 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
         write(sender, bufferServerList,strlen(bufferServerList));
     }
+    cout << delUnnecessary(leave);
+    if(cmd ==  usernameCheck)
+    {
+
+        leave = leave.substr(3,leave.length());
+
+        //string serverList = "CMD STUFF";
+        char bufferCMD[MAXMSG];
+        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+        cout << "CMD USERTO " << user << endl; 
+        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" "));
+        cout << "CMD FROM " << from << endl; 
+        string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
+        cout << "MEssage: " << message << endl;
+        for(int i = 0; i < 5; i++)
+        { 
+            cout << endl << clientsSockets[i].name << "=" << user;
+
+           
+            if(clientsSockets[i].name == user)
+            {
+                cout << "USER SIGUR";
+                strcpy(bufferCMD, message.c_str());
+      
+                write(clientsSockets[i].sock, bufferCMD, strlen(bufferCMD));
+            }
+
+        }
+        
+    }
+
     if(usernameCheck == MSG)
     {
         leave = leave.substr(3,leave.length());
@@ -607,7 +640,7 @@ int main(int argc, char *argv[])
     while(1)
     {
         char buffer[MAXMSG];
-
+        
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
         setTheSet( readfds, sockfd);
@@ -643,7 +676,6 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-
                     cout << "SEND MESSAGE HAPPENING" << endl;
                     serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr, activeSocks, addrlen);
                 }

@@ -289,7 +289,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
         //clientConnect();
         //const char *ip = getIpAddress().c_str();
-        string ipAddress = "127.0.0.1";
+        string ipAddress = "skel.ru.is";
         const char *ip = ipAddress.c_str();
         sockfd = socket(
             AF_INET, 
@@ -381,6 +381,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string emptyChecker = "0";
     string connectServer = "SERVER";
     string listServers = "LISTSERVERS";
+    string RSP = "RSP";
     string cmd ="CMD";
     buffer[val] = '\0';
     string str(buffer);
@@ -467,6 +468,49 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
         }
         
+    }
+
+    if(RSP == usernameCheck)
+    {
+        string serverList = "";
+        leave = leave.substr(3,leave.length());
+
+        //string serverList = "CMD STUFF";
+        char bufferRSP[MAXMSG];
+        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+        cout << "CMD USERTO " << user << endl; 
+        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" "));
+        cout << "CMD FROM " << from << endl; 
+        string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
+        cout << "MEssage: " << message << endl;
+        for(int i = 0; i < 5; i++)
+        { 
+            cout << endl << clientsSockets[i].name << "=" << user;
+
+           
+            if(clientsSockets[i].name == user)
+            {
+                if(message == listServers)
+                {
+                    string serverList;
+                    char bufferServerList[MAXMSG] = "";
+        
+                    for(int i = 0; i < 5; i++)
+                        { 
+                         serverList = serverList + " , " + clientsSockets[i].name;
+                        cout << endl << clientsSockets[i].name << endl;
+
+                        }
+
+                }
+                cout << "USER SIGUR";
+                strcpy(bufferRSP, serverList.c_str());
+      
+                write(clientsSockets[i].sock, bufferRSP, strlen(bufferRSP));
+            }
+
+        }
+
     }
 
     if(usernameCheck == MSG)
@@ -632,7 +676,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string  groupId = "GroupId;127.0.0.1";
+    string  groupId = "server2";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -676,7 +720,6 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-
                     cout << "SEND MESSAGE HAPPENING" << endl;
                     serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr, activeSocks, addrlen);
                 }
