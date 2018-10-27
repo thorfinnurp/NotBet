@@ -232,6 +232,7 @@ bool sendMessage(int sockfd)
     }
     else
     {
+
         n = write(sockfd,buffer,strlen(buffer));
         if (n < 0)
         {
@@ -435,8 +436,32 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             cout << endl << clientsSockets[i].name << endl;
 
         }
+
+
+        for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '/01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '/04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '/01');
+        message += "/04";
         strcpy(bufferServerList, serverList.c_str());
         send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
+
+
+
         write(sender, bufferServerList,strlen(bufferServerList));
     }
     cout << delUnnecessary(leave);
