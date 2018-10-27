@@ -283,7 +283,9 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-
+    string  groupId = "GroupId;127.0.0.1";
+    char bufferGroupId[MAXMSG] = "";
+    strcpy(bufferGroupId, groupId.c_str());
 
         //clientConnect();
         //const char *ip = getIpAddress().c_str();
@@ -347,7 +349,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
         //int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
-            
+        write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
         read(clientsSockets[emptySocket].sock, buffer, 1024);
         string username(buffer);
         clientsSockets[emptySocket].name = delUnnecessary(username);
@@ -416,10 +418,16 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     }
     if(listServers == usernameCheck)
     {
+        string serverList;
+        char bufferServerList[MAXMSG] = "";
+        
         for(int i = 0; i < 5; i++)
         { 
-            cout << clientsSockets[i].name;
+            cout << endl << clientsSockets[i].name << endl;
+
         }
+        strcpy(bufferServerList, groupId.c_str());
+        send(client[sender].sock, userArr, strlen(userArr), 0);
     }
 
     if(usernameCheck == MSG)
@@ -606,7 +614,9 @@ int main(int argc, char *argv[])
             int emptySocket = getEmptySocket();
             clientsSockets[emptySocket].sock = newSocket;
 
-            write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(buffer));
+            write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
+
+
             read(clientsSockets[emptySocket].sock, buffer, 1024);
             string username(buffer);
             clientsSockets[emptySocket].name = delUnnecessary(username);
