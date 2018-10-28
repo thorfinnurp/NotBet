@@ -366,6 +366,36 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
 }
 
+void sendCommand(int socket, string message)
+{
+    char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+        write(socket, buffer, strlen(buffer));
+
+}
+
 
 //This is our bulcky message function, it handles the API from the client
 string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
@@ -437,17 +467,19 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
         }
 
+        sendCommand(sender, serverList);
 
-        for(int i = 0; i < message.size(); i++)
+
+       /* for(int i = 0; i < message.size(); i++)
         {
             //laga slash
-            if(message[i] == '/01')
+            if(message[i] == '\01')
             {
                 //faera allt til um einn og inserta 01 a i +1
                 //insert i +1
             }
             //laga slash
-            if(message[i] == '/04')
+            if(message[i] == '\04')
             {
                 //faera allt til um einn og inserta 04 a i +1
             }
@@ -455,14 +487,17 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
         }
         //FORWARD SLASH
-        message.insert(0, 1, '/01');
-        message += "/04";
+        message.insert(0, 1, '\01');
+        message += "\04";
         strcpy(bufferServerList, serverList.c_str());
+
+
         send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
-
-
-
         write(sender, bufferServerList,strlen(bufferServerList));
+        */
+
+
+        
     }
     cout << delUnnecessary(leave);
     if(cmd ==  usernameCheck)
@@ -486,9 +521,11 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             if(clientsSockets[i].name == user)
             {
                 cout << "USER SIGUR";
-                strcpy(bufferCMD, message.c_str());
+
+                sendCommand(clientsSockets[i].sock, message);
+                //strcpy(bufferCMD, message.c_str());
       
-                write(clientsSockets[i].sock, bufferCMD, strlen(bufferCMD));
+                //write(clientsSockets[i].sock, bufferCMD, strlen(bufferCMD));
             }
 
         }
