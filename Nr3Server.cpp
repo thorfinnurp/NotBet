@@ -232,6 +232,7 @@ bool sendMessage(int sockfd)
     }
     else
     {
+
         n = write(sockfd,buffer,strlen(buffer));
         if (n < 0)
         {
@@ -283,7 +284,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "Server3";
+    string  groupId = "Server2";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -365,6 +366,36 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
 }
 
+void sendCommand(int socket, string message)
+{
+    char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+        write(socket, buffer, strlen(buffer));
+
+}
+
 
 //This is our bulcky message function, it handles the API from the client
 string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
@@ -373,7 +404,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     //clearing bitstuffing from string
     if(leave.length() > 2)
     { 
-        leave = leave.substr(1, leave.size() - 3);
+        leave = leave.substr(1, leave.find('\04')-1);
     }
     //char buffer[MAXMSG];
      cout <<endl << "BUFFER: " << leave << endl;
@@ -387,11 +418,12 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string emptyChecker = "0";
     string connectServer = "SERVER";
     string listServers = "LISTSERVERS";
+    string RSP = "RSP";
     string cmd ="CMD";
     buffer[val] = '\0';
     string str(buffer);
     
-    cout << "UsernameCheck1: " << endl;
+    
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);
@@ -404,23 +436,25 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     int n = username.length();
     char userArr[n+1];
     strcpy(userArr, username.c_str());
-    
+   
     string portNumberString = "";
-    string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+    string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
+    //string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
     string messageALL =  "";
     if(delUnnecessary(leave).length() > 6)
     { 
-        messageALL =  delUnnecessary(leave).substr(0, 6);
-        portNumberString = leave.substr(6,leave.length());
+        messageALL =  delUnnecessary(leave).substr(0, 7);
+        portNumberString = leave.substr(7,leave.length());
     }
     
     bool usernameBool = false;
 
-    string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
-    //cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
-    if(is_number(portNumberString)){ 
+   // string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(","));
+   // cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString << endl;
+    if(is_number(portNumberString))
+    { 
         int portNumberInt = stoi(portNumberString);
-        cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
+        cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt << endl;
         if(connectServer == usernameCheck)
         {
            // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
@@ -440,23 +474,65 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             cout << endl << clientsSockets[i].name << endl;
 
         }
-        strcpy(bufferServerList, serverList.c_str());
-        send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
-        write(sender, bufferServerList,strlen(bufferServerList));
-    }
-    cout << delUnnecessary(leave);
-    if(cmd ==  usernameCheck)
-    {
 
-        leave = leave.substr(3,leave.length());
+        sendCommand(sender, serverList);
+        
+    }
+   // cout << endl << "USernameCheck" << usernameCheck <<endl;
+  //  cout << endl << "DelUNNess LEAVe: "<<delUnnecessary(leave) << endl;
+
+
+ //   cout << "CMD " << endl;
+     //   cout<< "leave1" << leave<< endl;
+
+
+        leave = leave.substr(4,leave.length());
+//   cout << "leave2" << leave <<endl; 
+        //string s = "scott>=tiger>=mushroom";
+        string delimiter = ",";
+        int counter = 0;
+        size_t pos = 0;
+
+        leave = leave + ",";
+        string token, user,from,message;
+        while ((pos = leave.find(delimiter)) != string::npos) {
+            token = leave.substr(0, pos);
+            if(counter == 0)
+            {
+                user = token;
+            }
+            if(counter == 1)
+            {
+                from = token;
+            }
+            if(counter == 2)
+            {
+                cout<< "MEssageIf";
+                message = token;
+            }
+            counter = counter +1;
+             cout << token << endl;
+        
+        
+        
+        leave.erase(0, pos + delimiter.length());
+        }
+      //  cout << leave << endl;
 
         //string serverList = "CMD STUFF";
-        char bufferCMD[MAXMSG];
-        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+        
+        //string user = leave.substr(0, leave.find(","));
+        
+       // string from =  leave.substr(user.length() + 1, leave.find(","));
+        
+      //  string message =  leave.substr(user.length()+1 + from.length() +1, leave.length());
+
+
+
+    if(cmd ==  usernameCheck)
+    {
         cout << "CMD USERTO " << user << endl; 
-        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" "));
         cout << "CMD FROM " << from << endl; 
-        string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
         cout << "MEssage: " << message << endl;
         for(int i = 0; i < 5; i++)
         { 
@@ -466,13 +542,54 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             if(clientsSockets[i].name == user)
             {
                 cout << "USER SIGUR";
-                strcpy(bufferCMD, message.c_str());
+
+                sendCommand(clientsSockets[i].sock, message);
+                //strcpy(bufferCMD, message.c_str());
       
-                write(clientsSockets[i].sock, bufferCMD, strlen(bufferCMD));
+                //write(clientsSockets[i].sock, bufferCMD, strlen(bufferCMD));
             }
 
         }
         
+    }
+
+    if(RSP == usernameCheck)
+    {
+        cout << "CMD USERTO " << user << endl; 
+        cout << "CMD FROM " << from << endl; 
+        cout << "MEssage: " << message << endl;
+        string serverList = "";
+
+        for(int i = 0; i < 5; i++)
+        { 
+            cout << endl << clientsSockets[i].name << "=" << from;
+
+           
+            if(clientsSockets[i].name == from)
+            {
+                cout << endl << "Message:" << message <<"ListServers:" << listServers << endl;
+                if(message == listServers)
+                {
+                    cout << "Listservers RSP";
+                    char bufferServerList[MAXMSG] = "";
+        
+                    for(int i = 0; i < 5; i++)
+                        { 
+                         serverList = serverList + " , " + clientsSockets[i].name;
+                        cout << endl << clientsSockets[i].name << endl;
+
+                        }
+
+                }
+                cout << "USER SIGUR";
+               // strcpy(bufferRSP, serverList.c_str());
+                sendCommand(clientsSockets[i].sock, serverList);
+      
+              //  write(clientsSockets[i].sock, bufferRSP, strlen(bufferRSP));
+            }
+
+        }
+
     }
 
     if(usernameCheck == MSG)
@@ -638,7 +755,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string  groupId = "server3";
+    string  groupId = "server2";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -659,10 +776,11 @@ int main(int argc, char *argv[])
             int emptySocket = getEmptySocket();
             clientsSockets[emptySocket].sock = newSocket;
 
-            write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
+           // write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
 
+            sendCommand(newSocket, "CMD,,server3,LISTSERVERS");
 
-            read(clientsSockets[emptySocket].sock, buffer, 1024);
+           // read(clientsSockets[emptySocket].sock, buffer, 1024);
             string username(buffer);
             clientsSockets[emptySocket].name = delUnnecessary(username);
 
