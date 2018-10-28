@@ -58,6 +58,71 @@ public:
     //~Client(){}       
 };
 Server clientsSockets[5];
+
+void sendCommand(int socket, string message)
+{
+    char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+        write(socket, buffer, strlen(buffer));
+
+}
+//int currentMinute;
+int keepAlive(int currentMinute){
+ //   cout << endl  << "HELLO" << endl;
+    const time_t now = std::time(nullptr) ; // get the current time point
+
+    // convert it to (local) calendar time
+    // http://en.cppreference.com/w/cpp/chrono/c/localtime
+    const tm calendar_time = *std::localtime( std::addressof(now) ) ;
+
+    // print out some relevant fields http://en.cppreference.com/w/cpp/chrono/c/tm
+   // cout << "              year: " << calendar_time.tm_year + 1900 << '\n'
+   //           << "    month (jan==1): " << calendar_time.tm_mon + 1 << '\n'
+    //          << "      day of month: " << calendar_time.tm_mday << '\n'
+   //           << "hour (24-hr clock): " << calendar_time.tm_hour << '\n'
+   //           << "            minute: " << calendar_time.tm_min << '\n'
+  //            << "            second: " << calendar_time.tm_sec << '\n' ;
+
+    // http://en.cppreference.com/w/cpp/chrono/c/asctime
+    //cout << '\n' << std::asctime( std::addressof(calendar_time) );
+    int minuteRightNow = calendar_time.tm_min;
+   // cout << endl << "Currmin " << currentMinute << endl;
+   if(currentMinute != minuteRightNow)
+    {
+        for(int i = 0; i < 5; i++)
+        {
+            sendCommand(clientsSockets[i].sock, "keepAlive!");
+        }
+       currentMinute = minuteRightNow;
+       cout << endl << "CurrminChange!!!! " << currentMinute << endl;
+        //Send keep alive message!!!
+    }
+    return currentMinute;
+  //  cout << endl << "Currmin " << currentMinute << endl;
+}
+
 //Get the first empty socket
 int getEmptySocket()
 {
@@ -277,35 +342,7 @@ int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen)
 }
 
 
-void sendCommand(int socket, string message)
-{
-    char buffer[MAXMSG];
 
-
-     for(int i = 0; i < message.size(); i++)
-        {
-            //laga slash
-            if(message[i] == '\01')
-            {
-                //faera allt til um einn og inserta 01 a i +1
-                //insert i +1
-            }
-            //laga slash
-            if(message[i] == '\04')
-            {
-                //faera allt til um einn og inserta 04 a i +1
-            }
-            
-
-        }
-        //FORWARD SLASH
-        message.insert(0, 1, '\01');
-        message += "\04";
-        strcpy(buffer, message.c_str());
-
-        write(socket, buffer, strlen(buffer));
-
-}
 
 void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, int n2, int portNumber)
 {
@@ -748,12 +785,15 @@ int main(int argc, char *argv[])
    // Server servers[5];
     int sockfd, n;
     int portno = UNO;
+    int currentMinute = 0;
     //struct sockaddr_in serv_addr2;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
     int client1, max_sd;
     int client2;
+    timeval *threshold = new timeval;
+    threshold->tv_usec = 2500000;
     //int sockfd;
     //int clientsSockets[MAXUSER];
     
@@ -808,12 +848,14 @@ int main(int argc, char *argv[])
 
     while(1)
     {
+        
         char buffer[MAXMSG];
+       // cout << "While Begin" << endl;
         
         FD_ZERO(&readfds);   
         FD_SET(sockfd, &readfds);
         setTheSet( readfds, sockfd);
-        select(FD_SETSIZE ,&readfds ,NULL ,NULL ,NULL);
+        select(FD_SETSIZE ,&readfds ,NULL ,NULL ,threshold);
 
         if (FD_ISSET(sockfd, &readfds)) 
         {
@@ -851,6 +893,9 @@ int main(int argc, char *argv[])
                 }
             }
         }
+
+
+        currentMinute = keepAlive(currentMinute);
 
     }
     
