@@ -64,14 +64,42 @@ bool sendMessage(int sockfd)
 
     fgets(buffer,255,stdin);
 
-    string leave(buffer);
+    string message(buffer);
     string checkLeave = "LEAVE";
-    if(delUnnecessary(leave) == checkLeave)
+    if(delUnnecessary(message) == checkLeave)
     { 
         return true;
     }
     else
     {
+
+
+   // char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+       // write(socket, buffer, strlen(buffer));
+
         n = write(sockfd,buffer,strlen(buffer));
         if (n < 0)
         {

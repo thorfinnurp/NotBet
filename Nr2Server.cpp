@@ -423,7 +423,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     buffer[val] = '\0';
     string str(buffer);
     
-    cout << "UsernameCheck1: " << endl;
+    
     if (!str.empty() && str[str.length()-1] == '\n') 
     {
         str.erase(str.length()-1);
@@ -438,7 +438,8 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     strcpy(userArr, username.c_str());
    
     string portNumberString = "";
-    string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+    string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
+    //string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
     string messageALL =  "";
     if(delUnnecessary(leave).length() > 6)
     { 
@@ -476,17 +477,19 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         sendCommand(sender, serverList);
         
     }
-    cout << delUnnecessary(leave);
+    cout << endl << "USernameCheck" << usernameCheck <<endl;
+    cout << endl << "DelUNNess LEAVe: "<<delUnnecessary(leave) << endl;
     if(cmd ==  usernameCheck)
     {
+        cout << "CMD " << endl;
 
         leave = leave.substr(3,leave.length());
 
         //string serverList = "CMD STUFF";
         char bufferCMD[MAXMSG];
-        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
+        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
         cout << "CMD USERTO " << user << endl; 
-        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" "));
+        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(","));
         cout << "CMD FROM " << from << endl; 
         string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
         cout << "MEssage: " << message << endl;
