@@ -407,8 +407,9 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 {
 
 
-
     string leave(buffer);
+    cout <<endl << "BUFFERBEFORE: " << leave << endl;
+
     //clearing bitstuffing from string
     if(leave.length() > 2)
     { 
@@ -428,6 +429,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string listServers = "LISTSERVERS";
     string RSP = "RSP";
     string cmd ="CMD";
+    string fetch ="FETCH";
     buffer[val] = '\0';
     string str(buffer);
     
@@ -456,20 +458,25 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     }
     
     bool usernameBool = false;
+    string firstParam = "";
+    string listServersCheck = leave;
 
-
-
-     leave = leave.substr(4,leave.length());
+    // leave = leave.substr(4,leave.length());
 //   cout << "leave2" << leave <<endl; 
         //string s = "scott>=tiger>=mushroom";
         string delimiter = ",";
-        int counter = 0;
+        int counter = -1;
         size_t pos = 0;
 
         leave = leave + ",";
         string token, user,from,message;
         while ((pos = leave.find(delimiter)) != string::npos) {
             token = leave.substr(0, pos);
+
+            if(counter == -1)
+            {
+                firstParam = token;
+            }
             if(counter == 0)
             {
                 user = token;
@@ -493,10 +500,10 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
 
        if(clientsSockets[index].name == "empty")
-    {
-        cout << "clientsSockets.NAME";
-        clientsSockets[index].name = from;
-    }
+        {
+            cout << "clientsSockets.NAME";
+            clientsSockets[index].name = from;
+        }
 
    // string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(","));
    // cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString << endl;
@@ -510,8 +517,37 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             connectToServer(sockfd, server, activeSocks, n, portNumberInt);
            // send(sockfd, buff, strlen(buff), 0);
         }
+       
     }
-    if(listServers == delUnnecessary(leave))
+
+    cout <<endl << "ListServersCheck:" << firstParam << endl;
+
+    if(fetch == firstParam)
+        {
+            cout<<"User" << user<< endl;
+            if(user == "1")
+            {
+                sendCommand(sender, "be5d5d37542d75f93a87094459f76678");
+            }
+            if(user == "2")
+            {
+                sendCommand(sender, "6a7f6c24b6ea8591257217ef47bf0480");
+            }
+            if(user == "3")
+            {
+                sendCommand(sender, "8bf8854bebe108183caeb845c7676ae4");
+            }
+            if(user == "4")
+            {
+                sendCommand(sender, "0d149b90e7394297301c90191ae775f0");
+            }
+            if(user == "5")
+            {
+                sendCommand(sender, "d80ea254f1b207e19040e7932e958d1c");
+            }
+        }
+
+    if(listServers == delUnnecessary(listServersCheck))
     {
 
        string serverList;
@@ -527,24 +563,9 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         sendCommand(sender, serverList);
         
     }
-   // cout << endl << "USernameCheck" << usernameCheck <<endl;
-  //  cout << endl << "DelUNNess LEAVe: "<<delUnnecessary(leave) << endl;
 
-
- //   cout << "CMD " << endl;
-     //   cout<< "leave1" << leave<< endl;
-
-
-       
-      //  cout << leave << endl;
-
-        //string serverList = "CMD STUFF";
-        
-        //string user = leave.substr(0, leave.find(","));
-        
-       // string from =  leave.substr(user.length() + 1, leave.find(","));
-        
-      //  string message =  leave.substr(user.length()+1 + from.length() +1, leave.length());
+   
+ 
 
 
 
@@ -560,7 +581,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
            
             if(clientsSockets[i].name == user)
             {
-                cout << "USER SIGUR";
+       
 
                 sendCommand(clientsSockets[i].sock, message);
                 //strcpy(bufferCMD, message.c_str());

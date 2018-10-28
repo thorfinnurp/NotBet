@@ -276,6 +276,37 @@ int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen)
     return 0;
 }
 
+
+void sendCommand(int socket, string message)
+{
+    char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+        write(socket, buffer, strlen(buffer));
+
+}
+
 void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, int n2, int portNumber)
 {
     int sockfd, n;
@@ -284,7 +315,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "Server2";
+    string  groupId = "Server3";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -350,10 +381,12 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
         //int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
-        write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
-        read(clientsSockets[emptySocket].sock, buffer, 1024);
-        string username(buffer);
-        clientsSockets[emptySocket].name = delUnnecessary(username);
+        //write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
+        sendCommand(sockfd, "CMD,,server3,LISTSERVERS");
+
+        //read(clientsSockets[emptySocket].sock, buffer, 1024);
+       // string username(buffer);
+       // clientsSockets[emptySocket].name = delUnnecessary(username);
 
 
         for (int i = 0; i < 5; i++)
@@ -366,40 +399,15 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
 }
 
-void sendCommand(int socket, string message)
-{
-    char buffer[MAXMSG];
 
-
-     for(int i = 0; i < message.size(); i++)
-        {
-            //laga slash
-            if(message[i] == '\01')
-            {
-                //faera allt til um einn og inserta 01 a i +1
-                //insert i +1
-            }
-            //laga slash
-            if(message[i] == '\04')
-            {
-                //faera allt til um einn og inserta 04 a i +1
-            }
-            
-
-        }
-        //FORWARD SLASH
-        message.insert(0, 1, '\01');
-        message += "\04";
-        strcpy(buffer, message.c_str());
-
-        write(socket, buffer, strlen(buffer));
-
-}
 
 
 //This is our bulcky message function, it handles the API from the client
-string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
+string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
 {
+
+
+
     string leave(buffer);
     //clearing bitstuffing from string
     if(leave.length() > 2)
@@ -449,6 +457,47 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     
     bool usernameBool = false;
 
+
+
+     leave = leave.substr(4,leave.length());
+//   cout << "leave2" << leave <<endl; 
+        //string s = "scott>=tiger>=mushroom";
+        string delimiter = ",";
+        int counter = 0;
+        size_t pos = 0;
+
+        leave = leave + ",";
+        string token, user,from,message;
+        while ((pos = leave.find(delimiter)) != string::npos) {
+            token = leave.substr(0, pos);
+            if(counter == 0)
+            {
+                user = token;
+            }
+            if(counter == 1)
+            {
+                from = token;
+            }
+            if(counter == 2)
+            {
+                cout<< "MEssageIf";
+                message = token;
+            }
+            counter = counter +1;
+             cout << token << endl;
+        
+        
+        
+        leave.erase(0, pos + delimiter.length());
+        }
+
+
+       if(clientsSockets[index].name == "empty")
+    {
+        cout << "clientsSockets.NAME";
+        clientsSockets[index].name = from;
+    }
+
    // string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(","));
    // cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString << endl;
     if(is_number(portNumberString))
@@ -486,37 +535,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
      //   cout<< "leave1" << leave<< endl;
 
 
-        leave = leave.substr(4,leave.length());
-//   cout << "leave2" << leave <<endl; 
-        //string s = "scott>=tiger>=mushroom";
-        string delimiter = ",";
-        int counter = 0;
-        size_t pos = 0;
-
-        leave = leave + ",";
-        string token, user,from,message;
-        while ((pos = leave.find(delimiter)) != string::npos) {
-            token = leave.substr(0, pos);
-            if(counter == 0)
-            {
-                user = token;
-            }
-            if(counter == 1)
-            {
-                from = token;
-            }
-            if(counter == 2)
-            {
-                cout<< "MEssageIf";
-                message = token;
-            }
-            counter = counter +1;
-             cout << token << endl;
-        
-        
-        
-        leave.erase(0, pos + delimiter.length());
-        }
+       
       //  cout << leave << endl;
 
         //string serverList = "CMD STUFF";
@@ -541,7 +560,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
            
             if(clientsSockets[i].name == user)
             {
-                cout << "USER SIGUR";
+        
 
                 sendCommand(clientsSockets[i].sock, message);
                 //strcpy(bufferCMD, message.c_str());
@@ -755,7 +774,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string  groupId = "server2";
+    string  groupId = "server3";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -781,8 +800,8 @@ int main(int argc, char *argv[])
             sendCommand(newSocket, "CMD,,server3,LISTSERVERS");
 
            // read(clientsSockets[emptySocket].sock, buffer, 1024);
-            string username(buffer);
-            clientsSockets[emptySocket].name = delUnnecessary(username);
+            //string username(buffer);
+            //clientsSockets[emptySocket].name = delUnnecessary(username);
 
 
         }
@@ -801,7 +820,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     cout << "SEND MESSAGE HAPPENING" << endl;
-                    serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr, activeSocks, addrlen);
+                    serverId = echoMessage(buffer, sender, val, clientsSockets[i].name, serverId, sockfd, server, serv_addr, activeSocks, addrlen, i);
                 }
             }
         }
