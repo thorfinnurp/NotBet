@@ -404,10 +404,10 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     //clearing bitstuffing from string
     if(leave.length() > 2)
     { 
-        leave = leave.substr(1, leave.size() - 3);
+        leave = leave.substr(1, leave.find('\04')-1);
     }
     //char buffer[MAXMSG];
-     cout <<endl << "BUFFER: " << buffer << endl;
+     cout <<endl << "BUFFER: " << leave << endl;
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -443,17 +443,18 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     string messageALL =  "";
     if(delUnnecessary(leave).length() > 6)
     { 
-        messageALL =  delUnnecessary(leave).substr(0, 6);
-        portNumberString = leave.substr(6,leave.length());
+        messageALL =  delUnnecessary(leave).substr(0, 7);
+        portNumberString = leave.substr(7,leave.length());
     }
     
     bool usernameBool = false;
 
-    string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(" "));
-    //cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString<< endl;
-    if(is_number(portNumberString)){ 
+   // string user =  delUnnecessary(portNumberString).substr(0, delUnnecessary(portNumberString).find(","));
+    cout << "UsernameCheck2: " << usernameCheck  << "Portnumber int "<< portNumberString << endl;
+    if(is_number(portNumberString))
+    { 
         int portNumberInt = stoi(portNumberString);
-        cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt<< endl;
+        cout << "UsernameCheck3: " << usernameCheck  << "Portnumber int "<< portNumberInt << endl;
         if(connectServer == usernameCheck)
         {
            // connectToServer(sockfd, server, serv_addr2, activeSocks, n, DOS);
@@ -479,19 +480,59 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     }
     cout << endl << "USernameCheck" << usernameCheck <<endl;
     cout << endl << "DelUNNess LEAVe: "<<delUnnecessary(leave) << endl;
-    if(cmd ==  usernameCheck)
-    {
-        cout << "CMD " << endl;
 
-        leave = leave.substr(3,leave.length());
+
+    cout << "CMD " << endl;
+        cout<< "leave1" << leave<< endl;
+
+
+        leave = leave.substr(4,leave.length());
+
+        cout << "leave2" << leave <<endl; 
+        //string s = "scott>=tiger>=mushroom";
+        string delimiter = ",";
+        int counter = 0;
+        size_t pos = 0;
+        leave = leave + ",";
+        string token, user,from,message;
+        while ((pos = leave.find(delimiter)) != string::npos) {
+            token = leave.substr(0, pos);
+            if(counter == 0)
+            {
+                user = token;
+            }
+            if(counter == 1)
+            {
+                from = token;
+            }
+            if(counter == 2)
+            {
+                cout<< "MEssageIf";
+                message = token;
+            }
+            counter = counter +1;
+             cout << token << endl;
+        
+        
+        
+        leave.erase(0, pos + delimiter.length());
+        }
+        cout << leave << endl;
 
         //string serverList = "CMD STUFF";
-        char bufferCMD[MAXMSG];
-        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
+        
+        //string user = leave.substr(0, leave.find(","));
+        
+       // string from =  leave.substr(user.length() + 1, leave.find(","));
+        
+      //  string message =  leave.substr(user.length()+1 + from.length() +1, leave.length());
+
+
+
+    if(cmd ==  usernameCheck)
+    {
         cout << "CMD USERTO " << user << endl; 
-        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(","));
         cout << "CMD FROM " << from << endl; 
-        string message =  delUnnecessary(leave).substr(user.length() + from.length(), delUnnecessary(leave).length());
         cout << "MEssage: " << message << endl;
         for(int i = 0; i < 5; i++)
         { 
@@ -514,17 +555,11 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
     if(RSP == usernameCheck)
     {
-        string serverList = "RSP";
-        leave = leave.substr(3,leave.length());
-
-        //string serverList = "CMD STUFF";
-        char bufferRSP[MAXMSG];
-        string user =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
         cout << "CMD USERTO " << user << endl; 
-        string from =  delUnnecessary(leave).substr(user.length() + 1, delUnnecessary(leave).find(" ")-2);
         cout << "CMD FROM " << from << endl; 
-        string message =  delUnnecessary(leave).substr(user.length() + from.length() + 2, delUnnecessary(leave).length());
         cout << "MEssage: " << message << endl;
+        string serverList = "";
+
         for(int i = 0; i < 5; i++)
         { 
             cout << endl << clientsSockets[i].name << "=" << from;
