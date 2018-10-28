@@ -369,8 +369,14 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 //This is our bulcky message function, it handles the API from the client
 string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
 {
+    string leave(buffer);
+    //clearing bitstuffing from string
+    if(leave.length() > 2)
+    { 
+        leave = leave.substr(1, leave.size() - 3);
+    }
     //char buffer[MAXMSG];
-     cout <<endl << "BUFFER: " << buffer << endl;
+     cout <<endl << "BUFFER: " << leave << endl;
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -398,7 +404,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     int n = username.length();
     char userArr[n+1];
     strcpy(userArr, username.c_str());
-    string leave(buffer);
+    
     string portNumberString = "";
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
     string messageALL =  "";

@@ -400,6 +400,12 @@ void sendCommand(int socket, string message)
 //This is our bulcky message function, it handles the API from the client
 string echoMessage(char buffer[], int sender, int val, string username, string serverId, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen)
 {
+    string leave(buffer);
+    //clearing bitstuffing from string
+    if(leave.length() > 2)
+    { 
+        leave = leave.substr(1, leave.size() - 3);
+    }
     //char buffer[MAXMSG];
      cout <<endl << "BUFFER: " << buffer << endl;
     //API values for if statements
@@ -430,7 +436,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     int n = username.length();
     char userArr[n+1];
     strcpy(userArr, username.c_str());
-    string leave(buffer);
+   
     string portNumberString = "";
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(" "));
     string messageALL =  "";
@@ -468,35 +474,6 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         }
 
         sendCommand(sender, serverList);
-
-
-       /* for(int i = 0; i < message.size(); i++)
-        {
-            //laga slash
-            if(message[i] == '\01')
-            {
-                //faera allt til um einn og inserta 01 a i +1
-                //insert i +1
-            }
-            //laga slash
-            if(message[i] == '\04')
-            {
-                //faera allt til um einn og inserta 04 a i +1
-            }
-            
-
-        }
-        //FORWARD SLASH
-        message.insert(0, 1, '\01');
-        message += "\04";
-        strcpy(bufferServerList, serverList.c_str());
-
-
-        send(clientsSockets[sender].sock, userArr, strlen(userArr), 0);
-        write(sender, bufferServerList,strlen(bufferServerList));
-        */
-
-
         
     }
     cout << delUnnecessary(leave);
@@ -567,9 +544,10 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
                 }
                 cout << "USER SIGUR";
-                strcpy(bufferRSP, serverList.c_str());
+               // strcpy(bufferRSP, serverList.c_str());
+                sendCommand(clientsSockets[i].sock, serverList);
       
-                write(clientsSockets[i].sock, bufferRSP, strlen(bufferRSP));
+              //  write(clientsSockets[i].sock, bufferRSP, strlen(bufferRSP));
             }
 
         }
