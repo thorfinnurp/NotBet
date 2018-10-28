@@ -358,7 +358,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
 
         //clientConnect();
         //const char *ip = getIpAddress().c_str();
-        string ipAddress = "127.0.0.1";
+        string ipAddress = "skel.ru.is";
         const char *ip = ipAddress.c_str();
         sockfd = socket(
             AF_INET, 
@@ -793,7 +793,7 @@ int main(int argc, char *argv[])
     int client1, max_sd;
     int client2;
     timeval *threshold = new timeval;
-    threshold->tv_usec = 2500000;
+    threshold->tv_usec = 250000;
     //int sockfd;
     //int clientsSockets[MAXUSER];
     
