@@ -408,7 +408,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
 
     string leave(buffer);
-    cout <<endl << "BUFFERBEFORE: " << leave << endl;
+  //  cout <<endl << "BUFFERBEFORE: " << leave << endl;
 
     //clearing bitstuffing from string
     if(leave.length() > 2)
@@ -487,11 +487,11 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             }
             if(counter == 2)
             {
-                cout<< "MEssageIf";
+                //cout<< "MEssageIf";
                 message = token;
             }
             counter = counter +1;
-             cout << token << endl;
+          //  cout << token << endl;
         
         
         
@@ -501,7 +501,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
        if(clientsSockets[index].name == "empty")
         {
-            cout << "clientsSockets.NAME";
+         //   cout << "clientsSockets.NAME";
             clientsSockets[index].name = from;
         }
 
@@ -520,11 +520,11 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
        
     }
 
-    cout <<endl << "ListServersCheck:" << firstParam << endl;
+    //cout <<endl << "ListServersCheck:" << firstParam << endl;
 
     if(fetch == firstParam)
         {
-            cout<<"User" << user<< endl;
+          //  cout<<"User" << user<< endl;
             if(user == "1")
             {
                 sendCommand(sender, "be5d5d37542d75f93a87094459f76678");
@@ -564,19 +564,15 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         
     }
 
-   
- 
-
-
 
     if(cmd ==  usernameCheck)
     {
-        cout << "CMD USERTO " << user << endl; 
-        cout << "CMD FROM " << from << endl; 
-        cout << "MEssage: " << message << endl;
+     //   cout << "CMD USERTO " << user << endl; 
+       // cout << "CMD FROM " << from << endl; 
+     //   cout << "MEssage: " << message << endl;
         for(int i = 0; i < 5; i++)
         { 
-            cout << endl << clientsSockets[i].name << "=" << user;
+           // cout << endl << clientsSockets[i].name << "=" << user;
 
            
             if(clientsSockets[i].name == user)
@@ -595,22 +591,22 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
 
     if(RSP == usernameCheck)
     {
-        cout << "CMD USERTO " << user << endl; 
-        cout << "CMD FROM " << from << endl; 
-        cout << "MEssage: " << message << endl;
+      //  cout << "CMD USERTO " << user << endl; 
+     //   cout << "CMD FROM " << from << endl; 
+    //    cout << "MEssage: " << message << endl;
         string serverList = "";
 
         for(int i = 0; i < 5; i++)
         { 
-            cout << endl << clientsSockets[i].name << "=" << from;
+      //      cout << endl << clientsSockets[i].name << "=" << from;
 
            
             if(clientsSockets[i].name == from)
             {
-                cout << endl << "Message:" << message <<"ListServers:" << listServers << endl;
+               // cout << endl << "Message:" << message <<"ListServers:" << listServers << endl;
                 if(message == listServers)
                 {
-                    cout << "Listservers RSP";
+                  //  cout << "Listservers RSP";
                     char bufferServerList[MAXMSG] = "";
         
                     for(int i = 0; i < 5; i++)
@@ -621,7 +617,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
                         }
 
                 }
-                cout << "USER SIGUR";
+              //  cout << "USER SIGUR";
                // strcpy(bufferRSP, serverList.c_str());
                 sendCommand(clientsSockets[i].sock, serverList);
       
@@ -711,7 +707,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         }
     }
 
-    cout <<endl << "END of ECHO MESSAGE FUNC " << endl;
+   // cout <<endl << "END of ECHO MESSAGE FUNC " << endl;
 
     return serverId;
 }
@@ -795,7 +791,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string  groupId = "server2";
+    string groupId = "V_GROUP_18,10.3.17.151,4566";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
