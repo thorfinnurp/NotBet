@@ -460,6 +460,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     bool usernameBool = false;
     string firstParam = "";
     string listServersCheck = leave;
+    string commandForServer = "";
 
     // leave = leave.substr(4,leave.length());
 //   cout << "leave2" << leave <<endl; 
@@ -489,6 +490,10 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
             {
                 //cout<< "MEssageIf";
                 message = token;
+            }
+            if(counter == 3)
+            {
+                commandForServer = token;
             }
             counter = counter +1;
           //  cout << token << endl;
@@ -581,6 +586,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
            
             if(clientsSockets[i].name == user)
             {
+                message += "," + commandForServer; 
        
 
                 sendCommand(clientsSockets[i].sock, message);
