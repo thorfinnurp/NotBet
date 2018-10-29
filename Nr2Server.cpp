@@ -236,7 +236,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "Server3";
+    string  groupId = "Server2";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -458,7 +458,6 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
            
         }
 
-     
         if(listServers == delUnnecessary(listServersCheck))
         {
 
@@ -478,18 +477,18 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             }
 
             sendCommand(sender, serverList);
-            
         }
     }
 
-
+    //cout << "CMD="<< usernameCheck << endl;
     if(cmd ==  usernameCheck)
     {
-        string rspMessage ="RSP,server2,"+from;
+
+        string rspMessage ="RSP,"+from + ",server2,";
 
         for(int i = 0; i < 6; i++)
         { 
-            if(clientsSockets[i].name == user)
+            if(clientsSockets[i].name == from)
             {
                 rspMessage += ","; 
                 if(message == "LISTSERVERS")
@@ -504,8 +503,15 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
                 {
                     rspMessage += fetchHash(commandForServer);
                 }
-
-                sendCommand(clientsSockets[i].sock, rspMessage);
+                for(int a = 0; a < 6; a++)
+                {
+                    // cout <<from << ":" <<  clientsSockets[a].name <<endl;
+                    if(clientsSockets[a].name == from)
+                    {
+                       // cout <<from << ":" <<  clientsSockets[a].name <<endl;
+                        sendCommand(clientsSockets[i].sock, rspMessage);
+                    }
+                }
             }
         }
     }
@@ -588,7 +594,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string groupId = "V_GROUP_18";
+    string groupId = "server2";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
