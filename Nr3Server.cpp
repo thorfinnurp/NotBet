@@ -321,13 +321,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     string fullMEssage = leave;
 
     cout <<endl << "BUFFER: " << leave << endl;
-    
-    string emptyChecker = "0";
-    string connectServer = "SERVER";
-    string listServers = "LISTSERVERS";
-    string RSP = "RSP";
-    string cmd ="CMD";
-    string fetch ="FETCH";
+
     buffer[val] = '\0';
     
 
@@ -425,7 +419,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     if(clientsSockets[index].name == "verySecretClientName")
     { 
         //This sends the CMD we received from our client to the appropriate server
-        if(cmd ==  usernameCheck)
+        if("CMD" ==  usernameCheck)
         {
             for(int a = 0; a < 6; a++)
             {
@@ -440,7 +434,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
         { 
             int portNumberInt = stoi(portNumberString);
             //Checks if the client wants it's server to connect to another server
-            if(connectServer == usernameCheck)
+            if("SERVER" == usernameCheck)
             {
                 connectToServer(sockfd, server, activeSocks, portNumberInt);
             }
@@ -468,7 +462,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
             }
         }
         //This is for the client to get the LISTSERVERS from it's server
-        if(listServers == delUnnecessary(listServersCheck))
+        if("LISTSERVERS" == delUnnecessary(listServersCheck))
         {
 
             string serverList;
@@ -491,7 +485,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     }
 
     //other servers can execute these commands and get a RSP back
-    else if(cmd ==  usernameCheck)
+    else if("CMD" ==  usernameCheck)
     {
         //This is the string we send to other servers
         string rspMessage ="RSP,"+from + ",V_GROUP_19,";

@@ -321,21 +321,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     string fullMEssage = leave;
 
     cout <<endl << "BUFFER: " << leave << endl;
-    string checkWHO = "WHO";
-    string checkId = "ID" ;
-    string checkChangeId = "CHANGE ID" ;
-    string MSG = "MSG";
-    string checkMsgAll = "MSG ALL";
-    string ALL = "ALL";
-    string emptyChecker = "0";
-    string connectServer = "SERVER";
-    string listServers = "LISTSERVERS";
-    string RSP = "RSP";
-    string cmd ="CMD";
-    string fetch ="FETCH";
-    buffer[val] = '\0';
     
-
     //Here we start some working with the input string from the client. 
 
     string portNumberString = "";
@@ -354,23 +340,26 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     //from other servers
     if(usernameCheck == "RSP")
     {
-        string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
+        if(workingWithLeave.find(';') != string::npos)
+        { 
+            string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
 
-        string RSPdelimiter = ";";
-        int RSPcounter = -1;
-        size_t RSPpos = 0;
+            string RSPdelimiter = ";";
+            int RSPcounter = -1;
+            size_t RSPpos = 0;
 
-        
-        string RSPtoken = "";
-        while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
-        {
-            RSPtoken = RSPString.substr(0, RSPpos);
             
-            if(RSPtoken != "V_GROUP_20" && RSPtoken != "")
-            { 
-                clientsSockets[index].route.push_back(RSPtoken + "2");
+            string RSPtoken = "";
+            while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
+            {
+                RSPtoken = RSPString.substr(0, RSPpos);
+                
+                if(RSPtoken != "V_GROUP_20" && RSPtoken != "")
+                { 
+                    clientsSockets[index].route.push_back(RSPtoken + "2");
+                }
+                RSPString.erase(0, RSPpos + RSPdelimiter.length());
             }
-            RSPString.erase(0, RSPpos + RSPdelimiter.length());
         }
     }
 
@@ -427,7 +416,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     if(clientsSockets[index].name == "verySecretClientName")
     { 
         //This sends the CMD we received from our client to the appropriate server
-        if(cmd ==  usernameCheck)
+        if("CMD" ==  usernameCheck)
         {
             for(int a = 0; a < 6; a++)
             {
@@ -442,7 +431,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
         { 
             int portNumberInt = stoi(portNumberString);
             //Checks if the client wants it's server to connect to another server
-            if(connectServer == usernameCheck)
+            if("SERVER" == usernameCheck)
             {
                 connectToServer(sockfd, server, activeSocks, portNumberInt);
             }
@@ -470,7 +459,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
             }
         }
         //This is for the client to get the LISTSERVERS from it's server
-        if(listServers == delUnnecessary(listServersCheck))
+        if("LISTSERVERS" == delUnnecessary(listServersCheck))
         {
 
             string serverList;
@@ -493,7 +482,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     }
 
     //other servers can execute these commands and get a RSP back
-    else if(cmd ==  usernameCheck)
+    else if("CMD" ==  usernameCheck)
     {
         //This is the string we send to other servers
         string rspMessage ="RSP,"+from + ",V_GROUP_20,";
