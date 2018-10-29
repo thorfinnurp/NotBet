@@ -102,7 +102,7 @@ int keepAlive(int currentMinute){
     {
         for(int i = 0; i < 6; i++)
         {
-            if(clientsSockets[i].sock != 0)
+            if(clientsSockets[i].sock != 0 && clientsSockets[i].name != "verySecretClientName")
             { 
                 sendCommand(clientsSockets[i].sock, "keepAlive!");
             }
@@ -190,19 +190,18 @@ int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen, int index
 
 
 //This function is used for connecting to new servers
-void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, int n2, int portNumber)
+void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, int portNumber)
 {
     int sockfd, n;
-
     struct sockaddr_in serv_addr;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;
 
-    string  groupId = "Server2";
+    string  groupId = "V_GROUP_18";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
-    string ipAddress = "skel.ru.is";
+    string ipAddress = "127.0.0.1";
     const char *ip = ipAddress.c_str();
     sockfd = socket(
         AF_INET, 
@@ -256,7 +255,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     int emptySocket = getEmptySocket();
     clientsSockets[emptySocket].sock = sockfd;
     //This is done to get the name of the server we are connecting to
-    sendCommand(sockfd, "CMD,,server2,LISTSERVERS");
+    sendCommand(sockfd, "CMD,,V_GROUP_18,LISTSERVERS");
 
 }
 
@@ -305,6 +304,11 @@ string fetchHash(string index)
     }
     return "Sorry,No Hashes with that index";
 }
+bool contains(string stringToCheck, string charToCheck)
+{
+    return true;
+}
+
 
 
 
@@ -321,13 +325,9 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     //this is used for when we want to send a CMD from our client to other servers
     string fullMEssage = leave;
 
+    //print out what we receive from other servers/client
     cout <<endl << "BUFFER: " << leave << endl;
-    string checkWHO = "WHO";
-    string checkId = "ID" ;
-    string checkChangeId = "CHANGE ID" ;
-    string MSG = "MSG";
-    string checkMsgAll = "MSG ALL";
-    string ALL = "ALL";
+
     string emptyChecker = "0";
     string connectServer = "SERVER";
     string listServers = "LISTSERVERS";
@@ -340,8 +340,10 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     //Here we start some working with the input string from the client. 
 
     string portNumberString = "";
+    
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
     string messageALL =  "";
+    cout <<"CHECK1"<<endl;
     //Working with the string from the server/clinet
     //I now know it's not such a good idea using substr when working with strings since it causes 
     //the program to crash if sth is out of index
@@ -350,36 +352,40 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
         messageALL =  delUnnecessary(leave).substr(0, 7);
         portNumberString = leave.substr(7,leave.length());
     }
+    cout <<"CHECK2"<<endl;
     string workingWithLeave = leave;
     //This if statement is used to add to the LISTTOUTES table when we get a LISTSERVICE
     //from other servers
     if(usernameCheck == "RSP")
     {
-        string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
+        if(workingWithLeave.find(';') != string::npos)
+        { 
+            string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
 
-        string RSPdelimiter = ";";
-        int RSPcounter = -1;
-        size_t RSPpos = 0;
+            string RSPdelimiter = ";";
+            int RSPcounter = -1;
+            size_t RSPpos = 0;
 
-        cout<<"RSPString"<< RSPString<<endl;
-        string RSPtoken = "";
-        while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
-        {
-            RSPtoken = RSPString.substr(0, RSPpos);
-            cout<<"RSPTOKEN:" << RSPtoken<< endl;
-            if(RSPtoken != "server2" && RSPtoken != "")
-            { 
-                clientsSockets[index].route.push_back(RSPtoken + "2");
+            
+            string RSPtoken = "";
+            while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
+            {
+                RSPtoken = RSPString.substr(0, RSPpos);
+                
+                if(RSPtoken != "V_GROUP_18" && RSPtoken != "")
+                { 
+                    clientsSockets[index].route.push_back(RSPtoken + "2");
+                }
+                RSPString.erase(0, RSPpos + RSPdelimiter.length());
             }
-            RSPString.erase(0, RSPpos + RSPdelimiter.length());
         }
     }
-    
+
+    cout <<"CHECK3"<<endl;
 
     string firstParam = "";
     string listServersCheck = leave;
     string commandForServer = "";
-
 
     string delimiter = ",";
     int counter = -1;
@@ -420,7 +426,6 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
    //message/command from the server/client and add the name to our array. 
    if(clientsSockets[index].name == "empty")
     {
-        cout << "clientsSockets.NAME...from:" <<from<<endl ;
         clientsSockets[index].name = from;
         clientsSockets[index].route.push_back(from + "1");
     }
@@ -430,11 +435,11 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     //if they discover our password
     if(clientsSockets[index].name == "verySecretClientName")
     { 
+        //This sends the CMD we received from our client to the appropriate server
         if(cmd ==  usernameCheck)
         {
             for(int a = 0; a < 6; a++)
             {
-                cout << clientsSockets[a].name << "=?" << user<< endl;
                 if(clientsSockets[a].name == user)
                 { 
                     sendCommand(clientsSockets[a].sock, fullMEssage);
@@ -448,7 +453,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
             //Checks if the client wants it's server to connect to another server
             if(connectServer == usernameCheck)
             {
-                connectToServer(sockfd, server, activeSocks, n, portNumberInt);
+                connectToServer(sockfd, server, activeSocks, portNumberInt);
             }
            
         }
@@ -467,7 +472,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
                         //Last minute mix to elimnate empty routes
                         if(n != "empty2")
                         { 
-                            cout << "n="<<n << endl;
+                            cout << "n=" << n << endl;
                         }
                     }
                 }
@@ -477,7 +482,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
         if(listServers == delUnnecessary(listServersCheck))
         {
 
-           string serverList;
+            string serverList;
             char bufferServerList[MAXMSG] = "";
             
             for(int i = 0; i < 6; i++)
@@ -500,7 +505,7 @@ void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent 
     else if(cmd ==  usernameCheck)
     {
         //This is the string we send to other servers
-        string rspMessage ="RSP,"+from + ",server2,";
+        string rspMessage ="RSP,"+from + ",V_GROUP_18,";
 
         for(int i = 0; i < 6; i++)
         { 
@@ -578,7 +583,7 @@ int main(int argc, char *argv[])
         clientsSockets[i] =  emptyServer;
     }
 
-    cout << "creating socket" << endl;
+    cout << "The sever is online!" << endl;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
@@ -603,7 +608,7 @@ int main(int argc, char *argv[])
     }
    
     int addrlen = sizeof(serv_addr);
-    string groupId = "server2";
+    string groupId = "V_GROUP_18";
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
@@ -623,7 +628,7 @@ int main(int argc, char *argv[])
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket();
             clientsSockets[emptySocket].sock = newSocket;
-            sendCommand(newSocket, "CMD,,server2,LISTSERVERS");
+            sendCommand(newSocket, "CMD,,V_GROUP_18,LISTSERVERS");
         }
             
         for (int i = 0; i < MAXUSER; i++) 

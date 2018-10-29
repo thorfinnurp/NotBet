@@ -215,7 +215,7 @@ void sendCommand(int socket, string message)
 int main(int argc, char *argv[]) {
 
     int sockfd, n;
-    int portno = UNO;
+    int portno = TRES;
     struct sockaddr_in serv_addr;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;
@@ -223,8 +223,6 @@ int main(int argc, char *argv[]) {
     while(1)
     { 
 
-        //clientConnect();
-        //const char *ip = getIpAddress().c_str();
         string ipAddress = "127.0.0.1";
         const char *ip = ipAddress.c_str();
         sockfd = socket(
@@ -262,8 +260,6 @@ int main(int argc, char *argv[]) {
          buffer, 
         MAXMSG);
         bzero(buffer,256);
-
-        //fgets(buffer,255,stdin);
         
         if (n < 0)
         {
@@ -279,27 +275,22 @@ int main(int argc, char *argv[]) {
             error("ERROR connecting");
         }
 
+        //This is done for the server to get the clients name and it's "Password"
         sendCommand(sockfd, "CMD,,verySecretClientName,LISTSERVERS");
-
-      //  n = write(sockfd,buffer,strlen(buffer));
         
         FD_ZERO(&activeSocks);
         FD_SET(STDIN_FILENO, &activeSocks);
         FD_SET(sockfd, &activeSocks);
-        cout << "\033[1;31mWelcome to our chat server! You can use these commands: \033[0m" << endl;
-        cout << "\033[1;33mto get the id of the server: <ID> \033[0m" << endl;
-        cout << "\033[1;33mto leave the server: <LEAVE> \033[0m" << endl;
-        cout << "\033[1;33mto get the list of users: <WHO> \033[0m"  << endl;
-        cout << "\033[1;33mto send a message to a specific user: <MSG> <USERNAME> <Your message> \033[0m" << endl;
-        cout << "\033[1;33mto send a message to all the users: <MSG> <ALL> <Your message> \033[0m" << endl;
-        cout << "\033[1;33mto change the ID of the server: <MSG> <ALL> <Your message> \033[0m" << endl;
-
+        cout << "\033[1;31mWelcome to our client! You can use these commands to our server: \033[0m" << endl;
+        cout << "\033[1;33mto list the servers the server is connected to: <LISTSERVERS> \033[0m" << endl;
+        cout << "\033[1;33mto get the list of routes to other servers: <LISTROUTES> \033[0m"  << endl;
+        cout << "\033[1;33mto send command to other servers: <CMD,TOSERVER,FROMSERVER,COMMAND>\033[0m" << endl;
+        cout << "\033[1;33mto connect to another server: <SERVER,PORTNUMBER> \033[0m" << endl;
+        
         bool leaveChecker = false;
         while(leaveChecker == false)
         {
-
             readySocks = activeSocks;
-
             if(select(FD_SETSIZE, &readySocks, NULL, NULL, NULL) < 0)
             {
                 error("ERROR happened while selecting");
