@@ -351,14 +351,15 @@ string fetchHash(string index)
 //This is our bulcky message function, it handles the API from the client
 void echoMessage(char buffer[], int sender, int val, string username, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
 {
-
+    
     string leave(buffer);
     if(leave.length() > 2)
     { 
         leave = leave.substr(1, leave.find('\04')-1);
     }
+    string fullMEssage = leave;
     //char buffer[MAXMSG];
-     cout <<endl << "BUFFER: " << leave << endl;
+    cout <<endl << "BUFFER: " << leave << endl;
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -447,6 +448,20 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
 
     if(clientsSockets[index].name == "verySecretClientName")
     { 
+        cout<<"SECRET STUFF"<< endl;
+        if(cmd ==  usernameCheck)
+        {
+            for(int a = 0; a < 6; a++)
+            {
+                cout << clientsSockets[a].name << "=?" << user<< endl;
+                if(clientsSockets[a].name == user)
+                { 
+                    cout<<"leave:" << fullMEssage << ":" << endl;
+                    sendCommand(clientsSockets[a].sock, fullMEssage);
+                }
+            }
+        }
+
 
         if(is_number(portNumberString))
         { 
@@ -481,7 +496,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     }
 
     //cout << "CMD="<< usernameCheck << endl;
-    if(cmd ==  usernameCheck)
+    else if(cmd ==  usernameCheck)
     {
 
         string rspMessage ="RSP,"+from + ",server2,";

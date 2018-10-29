@@ -300,7 +300,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
         int addrlen = sizeof(serv_addr);
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
-        sendCommand(sockfd, "CMD,,server3,LISTSERVERS");
+        sendCommand(sockfd, "CMD,,server2,LISTSERVERS");
 
 }
 string listServersString()
@@ -351,14 +351,15 @@ string fetchHash(string index)
 //This is our bulcky message function, it handles the API from the client
 void echoMessage(char buffer[], int sender, int val, string username, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
 {
-
+    
     string leave(buffer);
     if(leave.length() > 2)
     { 
         leave = leave.substr(1, leave.find('\04')-1);
     }
+    string fullMEssage = leave;
     //char buffer[MAXMSG];
-     cout <<endl << "BUFFER: " << leave << endl;
+    cout <<endl << "BUFFER: " << leave << endl;
     //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
@@ -447,6 +448,20 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
 
     if(clientsSockets[index].name == "verySecretClientName")
     { 
+        cout<<"SECRET STUFF"<< endl;
+        if(cmd ==  usernameCheck)
+        {
+            for(int a = 0; a < 6; a++)
+            {
+                cout << clientsSockets[a].name << "=?" << user<< endl;
+                if(clientsSockets[a].name == user)
+                { 
+                    cout<<"leave:" << fullMEssage << ":" << endl;
+                    sendCommand(clientsSockets[a].sock, fullMEssage);
+                }
+            }
+        }
+
 
         if(is_number(portNumberString))
         { 
@@ -480,15 +495,15 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         }
     }
 
-    cout "CMD="<< usernameCheck << endl;
-    if(cmd ==  usernameCheck)
+    //cout << "CMD="<< usernameCheck << endl;
+    else if(cmd ==  usernameCheck)
     {
 
-        string rspMessage ="RSP,"+user + ",server2,";
+        string rspMessage ="RSP,"+from + ",server2,";
 
         for(int i = 0; i < 6; i++)
         { 
-            if(clientsSockets[i].name == user)
+            if(clientsSockets[i].name == from)
             {
                 rspMessage += ","; 
                 if(message == "LISTSERVERS")
@@ -505,10 +520,10 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
                 }
                 for(int a = 0; a < 6; a++)
                 {
-                     cout <<from << ":" <<  clientsSockets[a].name <<endl;
+                    // cout <<from << ":" <<  clientsSockets[a].name <<endl;
                     if(clientsSockets[a].name == from)
                     {
-                        cout <<from << ":" <<  clientsSockets[a].name <<endl;
+                       // cout <<from << ":" <<  clientsSockets[a].name <<endl;
                         sendCommand(clientsSockets[i].sock, rspMessage);
                     }
                 }
