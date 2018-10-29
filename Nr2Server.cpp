@@ -415,8 +415,10 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         {
             RSPtoken = RSPString.substr(0, RSPpos);
             cout<<"RSPTOKEN:" << RSPtoken<< endl;
-            clientsSockets[index].route.push_back(RSPtoken + "2");
-        
+            if(RSPtoken != "server2" && RSPtoken != "")
+            { 
+                clientsSockets[index].route.push_back(RSPtoken + "2");
+            }
             RSPString.erase(0, RSPpos + RSPdelimiter.length());
         }
     }

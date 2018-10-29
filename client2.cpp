@@ -64,14 +64,42 @@ bool sendMessage(int sockfd)
 
     fgets(buffer,255,stdin);
 
-    string leave(buffer);
+    string message(buffer);
     string checkLeave = "LEAVE";
-    if(delUnnecessary(leave) == checkLeave)
+    if(delUnnecessary(message) == checkLeave)
     { 
         return true;
     }
     else
     {
+
+
+   // char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+       // write(socket, buffer, strlen(buffer));
+
         n = write(sockfd,buffer,strlen(buffer));
         if (n < 0)
         {
@@ -96,7 +124,14 @@ void printMessage(int sockfd)
     {
         error("ERROR reading from socket");
     }
-    printf("%s\n",buffer);
+    string leave(buffer);
+
+    if(leave.length() > 2)
+    { 
+        leave = leave.substr(1, leave.find('\04')-1);
+    }
+    cout << leave << endl;
+    //printf("%s\n",buffer);
 }
 
 //Connect to the server and check if the client wants to exit
@@ -147,6 +182,35 @@ string getIpAddress()
         return ip;
 
 }
+void sendCommand(int socket, string message)
+{
+    char buffer[MAXMSG];
+
+
+     for(int i = 0; i < message.size(); i++)
+        {
+            //laga slash
+            if(message[i] == '\01')
+            {
+                //faera allt til um einn og inserta 01 a i +1
+                //insert i +1
+            }
+            //laga slash
+            if(message[i] == '\04')
+            {
+                //faera allt til um einn og inserta 04 a i +1
+            }
+            
+
+        }
+        //FORWARD SLASH
+        message.insert(0, 1, '\01');
+        message += "\04";
+        strcpy(buffer, message.c_str());
+
+        write(socket, buffer, strlen(buffer));
+
+}
 
 int main(int argc, char *argv[]) {
 
@@ -158,14 +222,6 @@ int main(int argc, char *argv[]) {
 
     while(1)
     { 
-
-    int sockfd, n;
-    int portno = UNO;
-    struct sockaddr_in serv_addr;           // Socket address structure
-    struct hostent *server;
-    fd_set activeSocks, readySocks;
-
-
 
         //clientConnect();
         //const char *ip = getIpAddress().c_str();
@@ -207,7 +263,7 @@ int main(int argc, char *argv[]) {
         MAXMSG);
         bzero(buffer,256);
 
-        fgets(buffer,255,stdin);
+        //fgets(buffer,255,stdin);
         
         if (n < 0)
         {
@@ -223,7 +279,9 @@ int main(int argc, char *argv[]) {
             error("ERROR connecting");
         }
 
-        n = write(sockfd,buffer,strlen(buffer));
+        sendCommand(sockfd, "CMD,,verySecretClientName,LISTSERVERS");
+
+      //  n = write(sockfd,buffer,strlen(buffer));
         
         FD_ZERO(&activeSocks);
         FD_SET(STDIN_FILENO, &activeSocks);

@@ -395,9 +395,10 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     if(delUnnecessary(leave).length() > 6)
     { 
         messageALL =  delUnnecessary(leave).substr(0, 7);
-        string portNumberString = leave.substr(7,leave.length());
+        portNumberString = leave.substr(7,leave.length());
+        cout<<endl<<"portNumberString"<< portNumberString<<endl;
     }
-
+// cout<<endl<<"portNumberString2"<< portNumberString<<endl;
     string workingWithLeave = leave;
 
     if(usernameCheck == "RSP")
@@ -408,12 +409,12 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         int RSPcounter = -1;
         size_t RSPpos = 0;
 
-        
-        string RSPtoken;
+        cout<<"RSPString"<< RSPString<<endl;
+        string RSPtoken = "";
         while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
         {
             RSPtoken = RSPString.substr(0, RSPpos);
-
+            cout<<"RSPTOKEN:" << RSPtoken<< endl;
             clientsSockets[index].route.push_back(RSPtoken + "2");
         
             RSPString.erase(0, RSPpos + RSPdelimiter.length());
@@ -486,9 +487,11 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             }
         }
 
-
+      //  cout << "port1" << portNumberString<< endl;
         if(is_number(portNumberString))
         { 
+           // cout << "port" << portNumberString<< endl;
+
             int portNumberInt = stoi(portNumberString);
             if(connectServer == usernameCheck)
             {
@@ -501,10 +504,16 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             cout<< "LISTROUTES!"<< endl;
             for(int a = 0; a < 6; a++)
             {
-                cout << "name: " << clientsSockets[a].name << endl;
-                for(string n : clientsSockets[a].route)
-                {
-                    cout << n << endl;
+                if(clientsSockets[a].name != "verySecretClientName" && clientsSockets[a].name != "empty" )
+                { 
+                    cout << "name: " << clientsSockets[a].name << endl;
+                    for(string n : clientsSockets[a].route)
+                    {
+                        if(n != "empty2")
+                        { 
+                            cout << "n="<<n << endl;
+                        }
+                    }
                 }
             }
         }
@@ -607,7 +616,7 @@ int main(int argc, char *argv[])
     fd_set readfds;
     struct sockaddr_in serv_addr;
 
-    vector <string> emptyRoute = {""};
+    vector <string> emptyRoute = {};
     Server emptyServer;
     emptyServer.sock = 0;
     emptyServer.name = "empty";
