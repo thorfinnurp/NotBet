@@ -27,6 +27,7 @@ using namespace std;
 #include <string>
 #include <array>
 #include <ctime>
+#include <vector>
 
 
 
@@ -53,9 +54,7 @@ class Server
 public:
     int sock;
     string name;
-   // Client(int sock, string name){} 
-
-    //~Client(){}       
+    vector <string>route;     
 };
 Server clientsSockets[6];
 
@@ -300,7 +299,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
         int addrlen = sizeof(serv_addr);
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
-        sendCommand(sockfd, "CMD,,server2,LISTSERVERS");
+        sendCommand(sockfd, "CMD,,server3,LISTSERVERS");
 
 }
 string listServersString()
@@ -396,8 +395,32 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     if(delUnnecessary(leave).length() > 6)
     { 
         messageALL =  delUnnecessary(leave).substr(0, 7);
-        portNumberString = leave.substr(7,leave.length());
+        string portNumberString = leave.substr(7,leave.length());
     }
+
+    string workingWithLeave = leave;
+
+    if(usernameCheck == "RSP")
+    {
+        string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
+
+        string RSPdelimiter = ";";
+        int RSPcounter = -1;
+        size_t RSPpos = 0;
+
+        
+        string RSPtoken;
+        while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
+        {
+            RSPtoken = RSPString.substr(0, RSPpos);
+
+            clientsSockets[index].route.push_back(RSPtoken + "2");
+        
+            RSPString.erase(0, RSPpos + RSPdelimiter.length());
+        }
+    }
+    
+
     
     bool usernameBool = false;
     string firstParam = "";
@@ -444,6 +467,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     {
         cout << "clientsSockets.NAME...from:" <<from<<endl ;
         clientsSockets[index].name = from;
+        clientsSockets[index].route.push_back(from + "1");
     }
 
     if(clientsSockets[index].name == "verySecretClientName")
@@ -472,6 +496,18 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             }
            
         }
+        if(delUnnecessary(listServersCheck) == "LISTROUTES")
+        {
+            cout<< "LISTROUTES!"<< endl;
+            for(int a = 0; a < 6; a++)
+            {
+                cout << "name: " << clientsSockets[a].name << endl;
+                for(string n : clientsSockets[a].route)
+                {
+                    cout << n << endl;
+                }
+            }
+        }
 
         if(listServers == delUnnecessary(listServersCheck))
         {
@@ -499,7 +535,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     else if(cmd ==  usernameCheck)
     {
 
-        string rspMessage ="RSP,"+from + ",server2,";
+        string rspMessage ="RSP,"+from + ",server3,";
 
         for(int i = 0; i < 6; i++)
         { 
@@ -571,10 +607,11 @@ int main(int argc, char *argv[])
     fd_set readfds;
     struct sockaddr_in serv_addr;
 
-
+    vector <string> emptyRoute = {""};
     Server emptyServer;
     emptyServer.sock = 0;
     emptyServer.name = "empty";
+    emptyServer.route = emptyRoute;
 
   
 

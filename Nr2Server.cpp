@@ -27,6 +27,7 @@ using namespace std;
 #include <string>
 #include <array>
 #include <ctime>
+#include <vector>
 
 
 
@@ -53,9 +54,7 @@ class Server
 public:
     int sock;
     string name;
-   // Client(int sock, string name){} 
-
-    //~Client(){}       
+    vector <string>route;     
 };
 Server clientsSockets[6];
 
@@ -397,7 +396,32 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     { 
         messageALL =  delUnnecessary(leave).substr(0, 7);
         portNumberString = leave.substr(7,leave.length());
+        cout<<endl<<"portNumberString"<< portNumberString<<endl;
     }
+// cout<<endl<<"portNumberString2"<< portNumberString<<endl;
+    string workingWithLeave = leave;
+
+    if(usernameCheck == "RSP")
+    {
+        string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
+
+        string RSPdelimiter = ";";
+        int RSPcounter = -1;
+        size_t RSPpos = 0;
+
+        
+        string RSPtoken;
+        while ((RSPpos = RSPString.find(RSPdelimiter)) != string::npos) 
+        {
+            RSPtoken = RSPString.substr(0, RSPpos);
+
+            clientsSockets[index].route.push_back(RSPtoken + "2");
+        
+            RSPString.erase(0, RSPpos + RSPdelimiter.length());
+        }
+    }
+    
+
     
     bool usernameBool = false;
     string firstParam = "";
@@ -444,6 +468,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     {
         cout << "clientsSockets.NAME...from:" <<from<<endl ;
         clientsSockets[index].name = from;
+        clientsSockets[index].route.push_back(from + "1");
     }
 
     if(clientsSockets[index].name == "verySecretClientName")
@@ -462,15 +487,35 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             }
         }
 
-
+      //  cout << "port1" << portNumberString<< endl;
         if(is_number(portNumberString))
         { 
+           // cout << "port" << portNumberString<< endl;
+
             int portNumberInt = stoi(portNumberString);
             if(connectServer == usernameCheck)
             {
                 connectToServer(sockfd, server, activeSocks, n, portNumberInt);
             }
            
+        }
+        if(delUnnecessary(listServersCheck) == "LISTROUTES")
+        {
+            cout<< "LISTROUTES!"<< endl;
+            for(int a = 0; a < 6; a++)
+            {
+                if(clientsSockets[a].name != "verySecretClientName" && clientsSockets[a].name != "empty" )
+                { 
+                    cout << "name: " << clientsSockets[a].name << endl;
+                    for(string n : clientsSockets[a].route)
+                    {
+                        if(n != "empty2")
+                        { 
+                            cout << "n="<<n << endl;
+                        }
+                    }
+                }
+            }
         }
 
         if(listServers == delUnnecessary(listServersCheck))
@@ -571,10 +616,11 @@ int main(int argc, char *argv[])
     fd_set readfds;
     struct sockaddr_in serv_addr;
 
-
+    vector <string> emptyRoute = {};
     Server emptyServer;
     emptyServer.sock = 0;
     emptyServer.name = "empty";
+    emptyServer.route = emptyRoute;
 
   
 
