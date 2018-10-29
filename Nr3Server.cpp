@@ -382,7 +382,7 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
         int emptySocket = getEmptySocket();
         clientsSockets[emptySocket].sock = sockfd;
         //write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
-        sendCommand(sockfd, "CMD,,V_GROUP_18,10.3.17.151,4566,LISTSERVERS");
+        sendCommand(sockfd, "CMD,,server3,LISTSERVERS");
 
         //read(clientsSockets[emptySocket].sock, buffer, 1024);
        // string username(buffer);
@@ -818,7 +818,7 @@ int main(int argc, char *argv[])
 
            // write(clientsSockets[emptySocket].sock, bufferGroupId,strlen(bufferGroupId));
 
-            sendCommand(newSocket, "CMD,server3,LISTSERVERS");
+            sendCommand(newSocket, "CMD,,server3,LISTSERVERS");
 
            // read(clientsSockets[emptySocket].sock, buffer, 1024);
             //string username(buffer);

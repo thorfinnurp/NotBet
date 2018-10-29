@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     while(1)
     { 
 
-        int sockfd, n;
+    int sockfd, n;
     int portno = UNO;
     struct sockaddr_in serv_addr;           // Socket address structure
     struct hostent *server;
