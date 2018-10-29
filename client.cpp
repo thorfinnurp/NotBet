@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
             error("ERROR connecting");
         }
 
-        sendCommand(sockfd, "CMD,,client,LISTSERVERS");
+        sendCommand(sockfd, "CMD,,verySecretClientName,LISTSERVERS");
 
       //  n = write(sockfd,buffer,strlen(buffer));
         
