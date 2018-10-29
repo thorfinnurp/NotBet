@@ -90,37 +90,23 @@ void sendCommand(int socket, string message)
 }
 //int currentMinute;
 int keepAlive(int currentMinute){
- //   cout << endl  << "HELLO" << endl;
-    const time_t now = std::time(nullptr) ; // get the current time point
 
-    // convert it to (local) calendar time
-    // http://en.cppreference.com/w/cpp/chrono/c/localtime
+    const time_t now = std::time(nullptr) ;
     const tm calendar_time = *std::localtime( std::addressof(now) ) ;
 
-    // print out some relevant fields http://en.cppreference.com/w/cpp/chrono/c/tm
-   // cout << "              year: " << calendar_time.tm_year + 1900 << '\n'
-   //           << "    month (jan==1): " << calendar_time.tm_mon + 1 << '\n'
-    //          << "      day of month: " << calendar_time.tm_mday << '\n'
-   //           << "hour (24-hr clock): " << calendar_time.tm_hour << '\n'
-   //           << "            minute: " << calendar_time.tm_min << '\n'
-  //            << "            second: " << calendar_time.tm_sec << '\n' ;
-
-    // http://en.cppreference.com/w/cpp/chrono/c/asctime
-    //cout << '\n' << std::asctime( std::addressof(calendar_time) );
-    int minuteRightNow = calendar_time.tm_min;
-   // cout << endl << "Currmin " << currentMinute << endl;
+   int minuteRightNow = calendar_time.tm_min;
    if(currentMinute != minuteRightNow)
     {
         for(int i = 0; i < 5; i++)
         {
-            sendCommand(clientsSockets[i].sock, "keepAlive!");
+            if(clientsSockets[i].sock != 0)
+            { 
+                sendCommand(clientsSockets[i].sock, "keepAlive!");
+            }
         }
        currentMinute = minuteRightNow;
-      // cout << endl << "CurrminChange!!!! " << currentMinute << endl;
-        //Send keep alive message!!!
     }
     return currentMinute;
-  //  cout << endl << "Currmin " << currentMinute << endl;
 }
 
 //Get the first empty socket
@@ -200,56 +186,6 @@ string getIpAddress()
 }
 
 
-//Connect to the server and check if the client wants to exit
-void clientConnect()
-{
-    bool connect = false;
-    while(connect == false)
-    { 
-        cout << "\033[1;31mEnter CONNECT or EXIT \033[0m" << endl;
-        int n;
-        char buffer[MAXMSG];
-        
-        bzero(
-         buffer, 
-        MAXMSG);
-        bzero(buffer,256);
-
-        fgets(buffer,255,stdin);
-
-        string leave(buffer);
-        string checkConnect = "CONNECT";
-        string exitProgram = "EXIT";
-        if(delUnnecessary(leave) == exitProgram)
-        {
-            cout << "Exiting program..." << endl;
-            exit(0);
-        }
-        if(delUnnecessary(leave) == checkConnect)
-        {
-            connect = true;
-        }
-    }
-}
-
-//Print message from server
-void printMessage(int sockfd)
-{
-    int n;
-    char buffer[MAXMSG];
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    if(n == 0)
-    {
-        return;
-    }
-    if (n < 0)
-    {
-        error("ERROR reading from socket");
-    }
-    printf("%s\n",buffer);
-}
-
 //https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
 bool is_number(const std::string& s)
 {
@@ -276,68 +212,16 @@ string getTime()
   return str;
 
 }
-//Send message to other clients or use one of the API commands
-bool sendMessage(int sockfd)
-{
-    int n;
-    char buffer[MAXMSG];
-    
-    bzero(
-        buffer, 
-        MAXMSG);
-    bzero(buffer,256);
-
-    fgets(buffer,255,stdin);
-
-    string leave(buffer);
-    string checkLeave = "LEAVE";
-    if(delUnnecessary(leave) == checkLeave)
-    { 
-        return true;
-    }
-    else
-    {
-
-        n = write(sockfd,buffer,strlen(buffer));
-        if (n < 0)
-        {
-            error("ERROR writing to socket");
-        }
-        return false;
-    }
-
-}
-
-//Create the unique ID for the group with the fortune of the day
-string createId()
-{
-    string result;
-    array<char, 128> buffer2;
-     
-    FILE* pipe = popen("fortune -s", "r");
-    if (!pipe)
-    {
-        std::cerr << "Couldn't start command." << std::endl;
-        return 0;
-    }
-    while (fgets(buffer2.data(), 128, pipe) != NULL) 
-    {
- 
-        result += buffer2.data();
-    }
-    auto returnCode = pclose(pipe);
-    result = result + "THPHO " + getTime(); 
-    return result;
-
-}
 
 
 //Disconnect from the chat server
-int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen)
+int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen, int index, Server emptyServer)
 {
     getpeername(sender , (struct sockaddr*)&serv_addr , (socklen_t*)&addrlen);
     cout << "Host disconnected, his ip: " << inet_ntoa(serv_addr.sin_addr) << ", and the port: " << UNO;
     close(sender);
+
+    clientsSockets[index] = emptyServer;
     return 0;
 }
 
@@ -574,11 +458,8 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
                 commandForServer = token;
             }
             counter = counter +1;
-          //  cout << token << endl;
         
-        
-        
-        leave.erase(0, pos + delimiter.length());
+            leave.erase(0, pos + delimiter.length());
         }
 
 
@@ -603,33 +484,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
        
     }
 
-    //cout <<endl << "ListServersCheck:" << firstParam << endl;
-
-   /* if(fetch == firstParam)
-        {
-          //  cout<<"User" << user<< endl;
-            if(user == "1")
-            {
-                sendCommand(sender, "be5d5d37542d75f93a87094459f76678");
-            }
-            if(user == "2")
-            {
-                sendCommand(sender, "6a7f6c24b6ea8591257217ef47bf0480");
-            }
-            if(user == "3")
-            {
-                sendCommand(sender, "8bf8854bebe108183caeb845c7676ae4");
-            }
-            if(user == "4")
-            {
-                sendCommand(sender, "0d149b90e7394297301c90191ae775f0");
-            }
-            if(user == "5")
-            {
-                sendCommand(sender, "d80ea254f1b207e19040e7932e958d1c");
-            }
-        }
-*/
+ 
     if(listServers == delUnnecessary(listServersCheck))
     {
 
@@ -655,9 +510,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
     if(cmd ==  usernameCheck)
     {
         string rspMessage ="RSP,server2,"+from;
-     //   cout << "CMD USERTO " << user << endl; 
-       // cout << "CMD FROM " << from << endl; 
-     //   cout << "MEssage: " << message << endl;
+
         for(int i = 0; i < 5; i++)
         { 
            // cout << endl << clientsSockets[i].name << "=" << user;
@@ -686,44 +539,7 @@ string echoMessage(char buffer[], int sender, int val, string username, string s
         }
     }
 
-    if(RSP == usernameCheck)
-    {
-      //  cout << "CMD USERTO " << user << endl; 
-     //   cout << "CMD FROM " << from << endl; 
-    //    cout << "MEssage: " << message << endl;
-        string serverList = "";
-
-        for(int i = 0; i < 5; i++)
-        { 
-      //      cout << endl << clientsSockets[i].name << "=" << from;
-
-           
-            if(clientsSockets[i].name == from)
-            {
-               // cout << endl << "Message:" << message <<"ListServers:" << listServers << endl;
-                if(message == listServers)
-                {
-                  //  cout << "Listservers RSP";
-                    char bufferServerList[MAXMSG] = "";
-        
-                    for(int i = 0; i < 5; i++)
-                        { 
-                         serverList = serverList + " , " + clientsSockets[i].name;
-                        cout << endl << clientsSockets[i].name << endl;
-
-                        }
-
-                }
-              //  cout << "USER SIGUR";
-               // strcpy(bufferRSP, serverList.c_str());
-                sendCommand(clientsSockets[i].sock, serverList);
-      
-              //  write(clientsSockets[i].sock, bufferRSP, strlen(bufferRSP));
-            }
-
-        }
-
-    }
+   
 
    
     return serverId;
@@ -855,7 +671,7 @@ int main(int argc, char *argv[])
                 if ((val = read( sender , buffer, 1024)) == 0)
                 {
                     cout << "DISCONNECT HAPPENING" << endl;
-                    clientsSockets[i].sock = disconnect(sender, serv_addr, addrlen);
+                    clientsSockets[i].sock = disconnect(sender, serv_addr, addrlen, i, emptyServer);
                 }
                 else
                 {
