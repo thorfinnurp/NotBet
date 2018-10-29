@@ -309,7 +309,7 @@ string fetchHash(string index)
 
 
 //This function handles every command we get from our client or other servers
-void echoMessage(char buffer[], int sender, int val, string username, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
+void echoMessage(char buffer[], int sender, int val, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
 {
     //This is the pure string we received from the server/client
     string leave(buffer);
@@ -335,34 +335,24 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     string cmd ="CMD";
     string fetch ="FETCH";
     buffer[val] = '\0';
-    string str(buffer);
     
-    
-    if (!str.empty() && str[str.length()-1] == '\n') 
-    {
-        str.erase(str.length()-1);
-    }
+
     //Here we start some working with the input string from the client. 
-    int a = str.length();
-    char buff[a+1];
-    strcpy(buff, str.c_str());
-    username = username + ": ";
-    int n = username.length();
-    char userArr[n+1];
-    strcpy(userArr, username.c_str());
-   
+
     string portNumberString = "";
     string usernameCheck =  delUnnecessary(leave).substr(0, delUnnecessary(leave).find(","));
     string messageALL =  "";
+    //Working with the string from the server/clinet
+    //I now know it's not such a good idea using substr when working with strings since it causes 
+    //the program to crash if sth is out of index
     if(delUnnecessary(leave).length() > 6)
     { 
         messageALL =  delUnnecessary(leave).substr(0, 7);
         portNumberString = leave.substr(7,leave.length());
-        cout<<endl<<"portNumberString"<< portNumberString<<endl;
     }
-// cout<<endl<<"portNumberString2"<< portNumberString<<endl;
     string workingWithLeave = leave;
-
+    //This if statement is used to add to the LISTTOUTES table when we get a LISTSERVICE
+    //from other servers
     if(usernameCheck == "RSP")
     {
         string RSPString = workingWithLeave.substr(workingWithLeave.find(";"),workingWithLeave.length());
@@ -386,8 +376,6 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
     }
     
 
-    
-    bool usernameBool = false;
     string firstParam = "";
     string listServersCheck = leave;
     string commandForServer = "";
@@ -399,6 +387,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
 
     leave = leave + ",";
     string token, user,from,message;
+    //This while function splits up the string from the client/servers to get the commands
     while ((pos = leave.find(delimiter)) != string::npos) {
         token = leave.substr(0, pos);
 
@@ -427,7 +416,8 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         leave.erase(0, pos + delimiter.length());
     }
 
-
+   //Checks if the server doesn't have a name and if not that means we are receving out first
+   //message/command from the server/client and add the name to our array. 
    if(clientsSockets[index].name == "empty")
     {
         cout << "clientsSockets.NAME...from:" <<from<<endl ;
@@ -435,9 +425,11 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         clientsSockets[index].route.push_back(from + "1");
     }
 
+    //We didn't make a port for our client and added a "password" instead.
+    //Only the client can execute the commands in this if statement or other servers
+    //if they discover our password
     if(clientsSockets[index].name == "verySecretClientName")
     { 
-        cout<<"SECRET STUFF"<< endl;
         if(cmd ==  usernameCheck)
         {
             for(int a = 0; a < 6; a++)
@@ -445,24 +437,22 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
                 cout << clientsSockets[a].name << "=?" << user<< endl;
                 if(clientsSockets[a].name == user)
                 { 
-                    cout<<"leave:" << fullMEssage << ":" << endl;
                     sendCommand(clientsSockets[a].sock, fullMEssage);
                 }
             }
         }
-
-      //  cout << "port1" << portNumberString<< endl;
+        //Checks if the portNumberString is a number and if it is then we can connect to another server
         if(is_number(portNumberString))
         { 
-           // cout << "port" << portNumberString<< endl;
-
             int portNumberInt = stoi(portNumberString);
+            //Checks if the client wants it's server to connect to another server
             if(connectServer == usernameCheck)
             {
                 connectToServer(sockfd, server, activeSocks, n, portNumberInt);
             }
            
         }
+        //Checks if the client want's the server to print it's Listroutes
         if(delUnnecessary(listServersCheck) == "LISTROUTES")
         {
             cout<< "LISTROUTES!"<< endl;
@@ -470,9 +460,11 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
             {
                 if(clientsSockets[a].name != "verySecretClientName" && clientsSockets[a].name != "empty" )
                 { 
+                    //print the name of the server and then it's routes
                     cout << "name: " << clientsSockets[a].name << endl;
                     for(string n : clientsSockets[a].route)
                     {
+                        //Last minute mix to elimnate empty routes
                         if(n != "empty2")
                         { 
                             cout << "n="<<n << endl;
@@ -481,7 +473,7 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
                 }
             }
         }
-
+        //This is for the client to get the LISTSERVERS from it's server
         if(listServers == delUnnecessary(listServersCheck))
         {
 
@@ -504,10 +496,10 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
         }
     }
 
-    //cout << "CMD="<< usernameCheck << endl;
+    //other servers can execute these commands and get a RSP back
     else if(cmd ==  usernameCheck)
     {
-
+        //This is the string we send to other servers
         string rspMessage ="RSP,"+from + ",server2,";
 
         for(int i = 0; i < 6; i++)
@@ -519,20 +511,15 @@ void echoMessage(char buffer[], int sender, int val, string username, int sockfd
                 {
                     rspMessage += listServersString();
                 }
-                if(message == "LISTROUTES")
-                {
-                    //TODO LISTROUTES
-                }
                 if(message == "FETCH")
                 {
                     rspMessage += fetchHash(commandForServer);
                 }
                 for(int a = 0; a < 6; a++)
                 {
-                    // cout <<from << ":" <<  clientsSockets[a].name <<endl;
+                    //Sending the RSP to the right server
                     if(clientsSockets[a].name == from)
                     {
-                       // cout <<from << ":" <<  clientsSockets[a].name <<endl;
                         sendCommand(clientsSockets[i].sock, rspMessage);
                     }
                 }
@@ -586,9 +573,6 @@ int main(int argc, char *argv[])
     emptyServer.name = "empty";
     emptyServer.route = emptyRoute;
 
-  
-
-   
     for (int i = 0; i < 6; i++)
     {
         clientsSockets[i] =  emptyServer;
@@ -623,7 +607,8 @@ int main(int argc, char *argv[])
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
-
+    //This while loop keeps going while the sever is up
+    //It uses select to check for incomming commands or connections
     while(1)
     { 
         char buffer[MAXMSG];      
@@ -632,9 +617,9 @@ int main(int argc, char *argv[])
         setTheSet( readfds, sockfd);
         select(FD_SETSIZE ,&readfds ,NULL ,NULL ,threshold);
 
+        //Handles new connections from other servers
         if (FD_ISSET(sockfd, &readfds)) 
         {
-            cout << "NEW CLIENT HAPPENING" << endl;
             int newSocket = getNewSocket(sockfd, serv_addr, addrlen);
             int emptySocket = getEmptySocket();
             clientsSockets[emptySocket].sock = newSocket;
@@ -647,15 +632,16 @@ int main(int argc, char *argv[])
             
             if (FD_ISSET(sender , &readfds)) 
             {
+                //read the command and check if someone is disconnecting
                 if ((val = read( sender , buffer, 1024)) == 0)
                 {
                     cout << "DISCONNECT HAPPENING" << endl;
                     clientsSockets[i].sock = disconnect(sender, serv_addr, addrlen, i, emptyServer);
                 }
+                //When we receive a command from another server
                 else
                 {
-                    cout << "SEND MESSAGE HAPPENING" << endl;
-                    echoMessage(buffer, sender, val, clientsSockets[i].name, sockfd, server, serv_addr, activeSocks, addrlen, i);
+                    echoMessage(buffer, sender, val, sockfd, server, serv_addr, activeSocks, addrlen, i);
                 }
             }
         }
