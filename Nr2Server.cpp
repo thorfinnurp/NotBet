@@ -49,6 +49,7 @@ void error(const char *msg)
     perror(msg);
     exit(1);
 }
+//Keeps information about the servers that are connected
 class Server
 {
 public:
@@ -56,38 +57,41 @@ public:
     string name;
     vector <string>route;     
 };
+
+//Array of Servers
 Server clientsSockets[6];
 
+
+//This function is used for communication with other functions
+//It alsi bitstuffs every message/command we send
 void sendCommand(int socket, string message)
 {
     char buffer[MAXMSG];
-
-
-     for(int i = 0; i < message.size(); i++)
+    for(int i = 0; i < message.size(); i++)
+    {
+        //Somthing That should be done
+        if(message[i] == '\01')
         {
-            //laga slash
-            if(message[i] == '\01')
-            {
-                //faera allt til um einn og inserta 01 a i +1
-                //insert i +1
-            }
-            //laga slash
-            if(message[i] == '\04')
-            {
-                //faera allt til um einn og inserta 04 a i +1
-            }
-            
-
+            //faera allt til um einn og inserta 01 a i +1
+            //insert i +1
         }
-        //FORWARD SLASH
-        message.insert(0, 1, '\01');
-        message += "\04";
-        strcpy(buffer, message.c_str());
+        //laga slash
+        if(message[i] == '\04')
+        {
+            //faera allt til um einn og inserta 04 a i +1
+        }
+    }
 
-        write(socket, buffer, strlen(buffer));
+    message.insert(0, 1, '\01');
+    message += "\04";
+
+    strcpy(buffer, message.c_str());
+    write(socket, buffer, strlen(buffer));
 
 }
-//int currentMinute;
+
+//This function checks if a minute has passed since it was las called and if the minute has
+//passed then it sends keep alive message to other servers connected
 int keepAlive(int currentMinute){
 
     const time_t now = std::time(nullptr) ;
@@ -108,7 +112,7 @@ int keepAlive(int currentMinute){
     return currentMinute;
 }
 
-//Get the first empty socket
+//Get the first empty socket in our array of servers
 int getEmptySocket()
 {
     for (int i = 0; i < 5; i++) 
@@ -131,10 +135,6 @@ int getNewSocket(int sockfd, struct sockaddr_in serv_addr,int addrlen)
     }
     return newSocket;
 }
-
-
-
-
 
 //https://stackoverflow.com/questions/83439/remove-spaces-from-stdstring-in-c
 //clear empty spaces from string
@@ -166,23 +166,6 @@ string delUnnecessary(string &str)
     }
     return str;
 }
-//Get the Ip address or name of the server we want to conenct ot
-string getIpAddress()
-{ 
-    cout << "\033[1;31mPlease enter the hostname / ip address: \033[0m";
-    char buffer[MAXMSG];
-        
-        bzero(
-         buffer, 
-        MAXMSG);
-        bzero(buffer,256);
-
-        fgets(buffer,255,stdin);
-        string ret(buffer);
-        string ip = delUnnecessary(ret);
-        return ip;
-
-}
 
 
 //https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
@@ -193,44 +176,24 @@ bool is_number(const std::string& s)
     return !s.empty() && it == s.end();
 }
 
-
-//https://stackoverflow.com/questions/16357999/current-date-and-time-as-string
-string getTime()
-{
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer[80];
-
-  time (&rawtime);
-  timeinfo = localtime(&rawtime);
-
-  strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
-  string str(buffer);
-
-  cout << str;
-  return str;
-
-}
-
-
 //Disconnect from the chat server
 int disconnect(int sender, struct sockaddr_in serv_addr , int addrlen, int index, Server emptyServer)
 {
     getpeername(sender , (struct sockaddr*)&serv_addr , (socklen_t*)&addrlen);
     cout << "Host disconnected, his ip: " << inet_ntoa(serv_addr.sin_addr) << ", and the port: " << UNO;
     close(sender);
-
+    //Make space for new servers
     clientsSockets[index] = emptyServer;
     return 0;
 }
 
 
 
-
+//This function is used for connecting to new servers
 void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, int n2, int portNumber)
 {
     int sockfd, n;
-    //int portno = TRES;
+
     struct sockaddr_in serv_addr;           // Socket address structure
     struct hostent *server;
     fd_set activeSocks, readySocks;
@@ -239,69 +202,65 @@ void connectToServer(int sockfd2, struct hostent *server2, fd_set activeSocks2, 
     char bufferGroupId[MAXMSG] = "";
     strcpy(bufferGroupId, groupId.c_str());
 
-        //clientConnect();
-        //const char *ip = getIpAddress().c_str();
-        string ipAddress = "127.0.0.1";
-        const char *ip = ipAddress.c_str();
-        sockfd = socket(
-            AF_INET, 
-            SOCK_STREAM, 
-            0);
+    string ipAddress = "skel.ru.is";
+    const char *ip = ipAddress.c_str();
+    sockfd = socket(
+        AF_INET, 
+        SOCK_STREAM, 
+        0);
 
-        if (sockfd < 0) {
-            error("ERROR opening socket");
-        }
+    if (sockfd < 0) {
+        error("ERROR opening socket");
+    }
 
-        server = gethostbyname(ip);
+    server = gethostbyname(ip);
 
-        if (server == NULL) {
-            fprintf(stderr,"ERROR, no such host\n");
-            exit(0);
-        }
+    if (server == NULL) {
+        fprintf(stderr,"ERROR, no such host\n");
+        exit(0);
+    }
 
-        bzero(
-            (char *) &serv_addr, 
-            sizeof(serv_addr));
+    bzero(
+        (char *) &serv_addr, 
+        sizeof(serv_addr));
 
-        serv_addr.sin_family = AF_INET;
+    serv_addr.sin_family = AF_INET;
 
-        bcopy((char *)server->h_addr, 
-             (char *)&serv_addr.sin_addr.s_addr,
-             server->h_length);
+    bcopy((char *)server->h_addr, 
+         (char *)&serv_addr.sin_addr.s_addr,
+         server->h_length);
 
-        serv_addr.sin_port = htons(portNumber);
-        cout << "\033[1;31mPlease enter username: \033[0m";
-
-        char buffer[MAXMSG];
-        
-        bzero(
-         buffer, 
-        MAXMSG);
-        bzero(buffer,256);
-
-       // fgets(buffer,255,stdin);
-        
-        if (n < 0)
-        {
-            error("ERROR writing to socket");
-        }
-
-
-        if  (connect(
-                sockfd,
-                (struct sockaddr *) &serv_addr,
-                sizeof(serv_addr)) < 0) {
-
-            error("ERROR connecting");
-        }
-
+    serv_addr.sin_port = htons(portNumber);
     
-        int addrlen = sizeof(serv_addr);
-        int emptySocket = getEmptySocket();
-        clientsSockets[emptySocket].sock = sockfd;
-        sendCommand(sockfd, "CMD,,server2,LISTSERVERS");
+    char buffer[MAXMSG];
+    
+    bzero(
+     buffer, 
+    MAXMSG);
+    bzero(buffer,256);
+
+    if (n < 0)
+    {
+        error("ERROR writing to socket");
+    }
+
+    if  (connect(
+            sockfd,
+            (struct sockaddr *) &serv_addr,
+            sizeof(serv_addr)) < 0) {
+
+        error("ERROR connecting");
+    }
+
+    int addrlen = sizeof(serv_addr);
+    int emptySocket = getEmptySocket();
+    clientsSockets[emptySocket].sock = sockfd;
+    //This is done to get the name of the server we are connecting to
+    sendCommand(sockfd, "CMD,,server2,LISTSERVERS");
 
 }
+
+//Returns a list of servers connected to our server
 string listServersString()
 {
     string serverList;
@@ -320,6 +279,8 @@ string listServersString()
         }
     return serverList;
 }
+
+//returns the index hashed asked for
 string fetchHash(string index)
 {
     if(index == "1")
@@ -347,19 +308,20 @@ string fetchHash(string index)
 
 
 
-//This is our bulcky message function, it handles the API from the client
+//This function handles every command we get from our client or other servers
 void echoMessage(char buffer[], int sender, int val, string username, int sockfd, struct hostent *server, struct sockaddr_in serv_addr, fd_set activeSocks, int addrlen, int index)
 {
-    
+    //This is the pure string we received from the server/client
     string leave(buffer);
+    //This deletes the bitstuffing from the command we received from the server/client
     if(leave.length() > 2)
     { 
         leave = leave.substr(1, leave.find('\04')-1);
     }
+    //this is used for when we want to send a CMD from our client to other servers
     string fullMEssage = leave;
-    //char buffer[MAXMSG];
+
     cout <<endl << "BUFFER: " << leave << endl;
-    //API values for if statements
     string checkWHO = "WHO";
     string checkId = "ID" ;
     string checkChangeId = "CHANGE ID" ;
